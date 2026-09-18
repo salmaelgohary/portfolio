@@ -477,6 +477,18 @@ a:focus-visible {
 .menu__links a[aria-current="page"] { color: #14141C; }
 .menu__links a:active { transform: translateX(4px); }
 
+.menu__links a[target="_blank"] {
+  display: inline-flex;
+  align-items: center;
+  gap: .2em;
+}
+
+.menu__arrow {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  font-size: 17px;
+  line-height: 1;
+}
+
 /* the links rise in behind the panel fade, one after the next */
 .menu[data-open] .menu__links a { animation: inkUp .5s cubic-bezier(.2, .8, .25, 1) both; }
 .menu[data-open] .menu__links a:nth-child(1) { animation-delay: .06s; }

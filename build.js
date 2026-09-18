@@ -6,7 +6,7 @@ const COPY_FIXES = require('./copy-fixes.js');
 const SRC = path.join(__dirname, 'canvas-export');
 const ROOT = __dirname;
 const DIST = path.join(ROOT, 'dist');   /* the site: the only thing that gets deployed */
-const DOC = path.join(SRC, 'Salma Portfolio - Final designs.dc.html');
+const DOC = path.join(SRC, 'source.html');
 
 const html = fs.readFileSync(DOC, 'utf8');
 const slots = JSON.parse(fs.readFileSync(path.join(ROOT, 'media/_slots.json'), 'utf8'));
@@ -23,15 +23,15 @@ const LINKS = {
 
 /* ---------- artboard -> page ---------- */
 const PAGES = {
-  '11A home':                   { file: 'index.html',      title: 'Salma El Gohary — Product Designer', nav: 'Work' },
-  '11C play':                   { file: 'play.html',       title: 'Play — Salma El Gohary',             nav: 'Play' },
-  '12B about':                  { file: 'about.html',      title: 'About — Salma El Gohary',            nav: 'About' },
-  '12D project':                { file: 'trax.html',       title: 'Trax Codes Copilot — Salma El Gohary', nav: 'Work' },
-  '13A wonderMakr case':        { file: 'wondermakr.html', title: 'wonderMakr xVend — Salma El Gohary', nav: 'Work' },
-  '13B SleepWell case':         { file: 'sleepwell.html',  title: 'SleepWell — Salma El Gohary',        nav: 'Play' },
-  '13C GO Smart case':          { file: 'go-smart.html',   title: 'GO Smart — Salma El Gohary',         nav: 'Play' },
-  '13D U4RIA case':             { file: 'u4ria.html',      title: 'U4RIA — Salma El Gohary',            nav: 'Play' },
-  '13E AMD Install Manager case': { file: 'amd.html',      title: 'AMD Install Manager — Salma El Gohary', nav: 'Work' },
+  '11A home':                   { file: 'index.html',      title: 'Salma El Gohary | Product Designer', nav: 'Work' },
+  '11C play':                   { file: 'play.html',       title: 'Salma El Gohary | Product Designer', nav: 'Play' },
+  '12B about':                  { file: 'about.html',      title: 'Salma El Gohary | Product Designer', nav: 'About' },
+  '12D project':                { file: 'trax.html',       title: 'Trax Codes Copilot | Salma El Gohary', nav: 'Work' },
+  '13A wonderMakr case':        { file: 'wondermakr.html', title: 'wonderMakr xVend | Salma El Gohary', nav: 'Work' },
+  '13B SleepWell case':         { file: 'sleepwell.html',  title: 'SleepWell | Salma El Gohary',        nav: 'Play' },
+  '13C GO Smart case':          { file: 'go-smart.html',   title: 'GO Smart | Salma El Gohary',         nav: 'Play' },
+  '13D U4RIA case':             { file: 'u4ria.html',      title: 'U4RIA | Salma El Gohary',            nav: 'Play' },
+  '13E AMD Install Manager case': { file: 'amd.html',      title: 'AMD Install Manager | Salma El Gohary', nav: 'Work' },
 };
 
 /* Case-study destination for each project card, in the order the cards appear. */
@@ -104,7 +104,10 @@ function menuHtml(active) {
   const links = NAV_ITEMS.map((it) => {
     const on = it.label === active;
     const attrs = it.external ? ' target="_blank" rel="noopener"' : '';
-    return `<a href="${it.href}"${attrs}${on ? ' aria-current="page"' : ''}>${it.label}</a>`;
+    const label = it.external
+      ? `${it.label.slice(0, -1).trim()} <span class="menu__arrow" aria-hidden="true">↗</span>`
+      : it.label;
+    return `<a href="${it.href}"${attrs}${on ? ' aria-current="page"' : ''}>${label}</a>`;
   }).join('\n      ');
 
   return `<div class="menu" id="site-menu" data-menu hidden>

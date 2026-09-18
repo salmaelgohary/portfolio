@@ -1,164 +1,32 @@
 {
- "home-portrait": {
-  "file": "slot-home-portrait.webp",
-  "s": 1,
-  "x": 0,
-  "y": -1.1804260273484388
- },
- "e4e-portrait": {
-  "file": "slot-e4e-portrait.webp",
-  "s": 1,
-  "x": 0,
-  "y": 0
- },
- "e8b-sq1": {
-  "file": "slot-e8b-sq1.webp",
-  "s": 1,
-  "x": 0,
-  "y": 0
- },
- "e8b-pol1": {
-  "file": "slot-e8b-pol1.webp",
-  "s": 1,
-  "x": 0,
-  "y": 0
- },
- "e8b-walk1": {
-  "file": "slot-e8b-walk1.webp",
-  "s": 1,
-  "x": 0,
-  "y": 0
- },
- "e8b-bake1": {
-  "file": "slot-e8b-bake1.webp",
-  "s": 1,
-  "x": 0,
-  "y": 0
- },
- "e8b-trav1": {
-  "file": "slot-e8b-trav1.webp",
-  "s": 1,
-  "x": 0,
-  "y": 0
- },
- "e10a-me": {
-  "file": "slot-e10a-me.webp",
-  "s": 1,
-  "x": 0,
-  "y": 0
- },
- "e12b-walk": {
-  "file": "slot-e12b-walk.webp",
-  "s": 1,
-  "x": 0,
-  "y": 0
- },
- "e12b-bake": {
-  "file": "slot-e12b-bake.webp",
-  "s": 1,
-  "x": 0,
-  "y": 0
- },
- "e12b-trav": {
-  "file": "slot-e12b-trav.webp",
-  "s": 1,
-  "x": 0,
-  "y": 0
- },
- "e12b-cro": {
-  "file": "slot-e12b-cro.webp",
-  "s": 1,
-  "x": 0,
-  "y": 0
- },
- "t-brand": {
-  "file": "slot-t-brand.webp",
-  "s": 1,
-  "x": 0,
-  "y": 0
- },
- "t-nav": {
-  "file": "slot-t-nav.webp",
-  "s": 1,
-  "x": 0,
-  "y": 0
- },
- "t-sol1": {
-  "file": "slot-t-sol1.webp",
-  "s": 1,
-  "x": 0,
-  "y": 0
- },
- "t-sol2": {
-  "file": "slot-t-sol2.webp",
-  "s": 1,
-  "x": 0,
-  "y": 0
- },
- "t-sol3": {
-  "file": "slot-t-sol3.webp",
-  "s": 1,
-  "x": 0,
-  "y": 0
- },
- "t-comp": {
-  "file": "slot-t-comp.webp",
-  "s": 1,
-  "x": 0,
-  "y": 0
- },
- "t-d1a": {
-  "file": "slot-t-d1a.webp",
-  "s": 1,
-  "x": 0,
-  "y": 0
- },
- "t-d1b": {
-  "file": "slot-t-d1b.webp",
-  "s": 1,
-  "x": 0,
-  "y": 0
- },
- "t-d2a": {
-  "file": "slot-t-d2a.webp",
-  "s": 1,
-  "x": 0,
-  "y": 0
- },
- "t-d2b": {
-  "file": "slot-t-d2b.webp",
-  "s": 1,
-  "x": 0,
-  "y": 0
- },
- "t-d3a": {
-  "file": "slot-t-d3a.webp",
-  "s": 1,
-  "x": 0,
-  "y": 0
- },
- "t-d3b": {
-  "file": "slot-t-d3b.webp",
-  "s": 1,
-  "x": 0,
-  "y": 0
- },
- "t-d5a": {
-  "file": "slot-t-d5a.webp",
-  "s": 1,
-  "x": 0,
-  "y": 0
- },
- "t-d5b": {
-  "file": "slot-t-d5b.webp",
-  "s": 1,
-  "x": 0,
-  "y": 0
- },
- "t-d4b": {
-  "file": "slot-t-d4b.webp",
-  "s": 1,
-  "x": 0,
-  "y": 0
- }
+  "e8b-pol1": {
+    "file": "slot-e8b-pol1.webp",
+    "s": 1,
+    "x": 0,
+    "y": 0
+  },
+  "e12b-walk": {
+    "file": "slot-e12b-walk.webp",
+    "s": 1,
+    "x": 0,
+    "y": 0
+  },
+  "e12b-bake": {
+    "file": "slot-e12b-bake.webp",
+    "s": 1,
+    "x": 0,
+    "y": 0
+  },
+  "e12b-trav": {
+    "file": "slot-e12b-trav.webp",
+    "s": 1,
+    "x": 0,
+    "y": 0
+  },
+  "e12b-cro": {
+    "file": "slot-e12b-cro.webp",
+    "s": 1,
+    "x": 0,
+    "y": 0
+  }
 }

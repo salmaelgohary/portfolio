@@ -1,5 +1,5 @@
 // Converts a GIF to an H.264 MP4 using macOS's own AVFoundation (no ffmpeg).
-// Usage: swift tools/gif2mp4.swift <in.gif> <out.mp4> <bgHex> <bitrate>
+// Usage: swift tools/gif-to-mp4.swift <in.gif> <out.mp4> <bgHex> <bitrate>
 // Transparent pixels are flattened onto bgHex. Frames are tagged sRGB / BT.709.
 // Heavily dithered GIFs (like the Trax recording) pick up a colour cast however
 // high the bitrate, because compression averages the dither; ship those as GIFs.
