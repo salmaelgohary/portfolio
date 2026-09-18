@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const COPY_FIXES = require('./copy-fixes.js');
 
-const SRC = '/Users/salmaelgohary/Downloads/portfolio redesign';
+const SRC = path.join(__dirname, 'canvas-export');
 const ROOT = __dirname;
 const DIST = path.join(ROOT, 'dist');   /* the site: the only thing that gets deployed */
 const DOC = path.join(SRC, 'Salma Portfolio - Final designs.dc.html');
