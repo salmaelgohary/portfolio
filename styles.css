@@ -1,0 +1,1053 @@
+/* ---------------------------------------------------------------
+   1. Base styles from the original design
+   --------------------------------------------------------------- */
+  body { margin: 0; background: var(--surface); font-family: "DM Sans", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  a { color: #1E4FD8; text-decoration: none; }
+  a:hover { color: #8A5A12; }
+  ::selection { background: #E4D8FF; color: #6D3BF5; }
+  ::-moz-selection { background: #E4D8FF; color: #6D3BF5; }
+  @keyframes flowFade { 0%,42% { opacity: 1; } 50%,92% { opacity: 0; } 100% { opacity: 1; } }
+  @keyframes inkUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
+  @keyframes inkDrift { 0%,100% { transform: translate3d(0,0,0) scale(1); } 50% { transform: translate3d(4%,-3%,0) scale(1.08); } }
+  @keyframes rollUp { from { transform: translateY(0); } to { transform: translateY(-50%); } }
+  @keyframes rollDown { from { transform: translateY(-50%); } to { transform: translateY(0); } }
+  @keyframes calmWave {
+    0% { transform: translate3d(0,0,0) rotate(0deg) scale(1); }
+    14% { transform: translate3d(16px,-11px,0) rotate(.7deg) scale(1.015); }
+    29% { transform: translate3d(27px,7px,0) rotate(1.3deg) scale(1.03); }
+    43% { transform: translate3d(12px,17px,0) rotate(.4deg) scale(1.012); }
+    57% { transform: translate3d(-11px,11px,0) rotate(-.6deg) scale(.995); }
+    71% { transform: translate3d(-23px,-7px,0) rotate(-1.2deg) scale(.985); }
+    86% { transform: translate3d(-9px,-16px,0) rotate(-.5deg) scale(1.006); }
+    100% { transform: translate3d(0,0,0) rotate(0deg) scale(1); }
+  }
+  [data-wave] { animation: calmWave 38s ease-in-out infinite; will-change: transform; }
+  [data-projui] { transition: transform .45s cubic-bezier(.25,.75,.3,1); will-change: transform; }
+  [data-inkcard]:hover [data-projui] { transform: translateY(-7px) scale(1.018); }
+  [data-wave] + [data-wave] { animation-duration: 44s; animation-delay: -11s; }
+  [data-inklink] [data-inkbar] { transform: scaleX(0); transform-origin: left; transition: transform .35s cubic-bezier(.2,.8,.25,1); }
+  [data-inklink]:hover [data-inkbar] { transform: scaleX(1); }
+  [data-inkbtn] { transition: background .3s ease, color .3s ease, border-color .3s ease, transform .3s cubic-bezier(.2,.8,.25,1); }
+  [data-inkbtn]:hover { background: #E0A32E; border-color: #E0A32E; color: #14141C; transform: translateY(-2px); }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+
+/* ---------------------------------------------------------------
+   2. Turning a 1440px artboard into a page
+   --------------------------------------------------------------- */
+
+/* The page colour. Every surface on the site reads this one token: the body,
+   the page itself, the sticky nav, the footer and the mobile menu panel. It is
+   the only place to change it. */
+:root {
+  --surface: #F7F7F9;
+  /* the case-study reading measure. Narrower than the canvas's 820px: it keeps
+     the line length comfortable and, because the images run the full width of
+     this column, it brings their height down with it. */
+  --measure: 768px;
+}
+
+html { scroll-behavior: smooth; }
+
+.page {
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  background: var(--surface);
+  overflow-x: clip;
+}
+
+/* The nav mark. The site is light-only, so the dark logo is the one that
+   renders; the light one is the favicon's dark-scheme variant. */
+.wordmark { display: inline-flex; text-decoration: none; }
+.wordmark img { display: block; width: 34px; height: 34px; }
+
+/* The nav is transparent over the hero and lifts onto the page colour once you
+   scroll. script.js only toggles data-stuck; the colours live here so they can
+   follow --surface. */
+[data-inknav] {
+  background: transparent;
+  /* the bar slides out of the way when you scroll down; see inkNav in script.js */
+  transition:
+    transform .35s cubic-bezier(.2, .8, .25, 1),
+    background .4s ease,
+    box-shadow .4s ease;
+  will-change: transform;
+}
+
+/* `.page` prefix only to outrank [data-stuck], which also sets box-shadow */
+.page [data-inknav][data-hidden] {
+  transform: translateY(-100%);
+  /* the bar's bottom edge lands exactly on y=0 when it is hidden, so its 1px
+     bottom shadow would draw as a hairline across the top of the viewport.
+     It fades faster than the slide so nothing is left behind. */
+  box-shadow: none;
+  transition:
+    transform .35s cubic-bezier(.2, .8, .25, 1),
+    background .4s ease,
+    box-shadow .12s ease;
+}
+[data-inknav][data-stuck] {
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  box-shadow: 0 1px 0 rgba(20, 20, 28, .1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* Links inherit the design's own type; only the underline has to go. */
+a[data-inklink], a[data-inkbtn], a.cardlink, .page nav a { text-decoration: none; }
+a.cardlink { color: inherit; display: block; }
+a[data-inkbtn] { display: inline-block; }
+a[data-inkbtn]:hover { color: #14141C; }
+
+img, iframe, canvas, video { max-width: 100%; }
+
+/* The footer's padding was set for the canvas's 50/42px display type. That type
+   is 32px now, so the band was left looking unnecessarily tall. */
+[data-foot] {
+  padding-top: 36px !important;
+  padding-bottom: 36px !important;
+}
+
+/* The back link that sits above the title on a phone; hidden everywhere else,
+   where the contents column carries its own. */
+.backtop {
+  display: none;
+  padding-top: 8px;
+  font-family: 'DM Sans', system-ui, sans-serif;
+  font-size: 13px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: #5F5C6B;
+  text-decoration: none;
+}
+
+
+/* A headline's coloured spans carry their own px size from the canvas — "pixels."
+   on the home page is pinned at 72px — so they have to be forced to follow the
+   fluid h1 rather than staying at the 1440 value. !important is required: an
+   inline style beats any selector without it. */
+.page h1 span { font-size: inherit !important; letter-spacing: inherit !important; }
+
+/* Keyboard users get the same affordance the hover states give. */
+a:focus-visible {
+  outline: 2px solid #5B47FF;
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* ---------------------------------------------------------------
+   3. Responsive
+
+   The canvas is a fixed 1440px composition. Below that width the art bands
+   scale proportionally (see scaleArtBands in build.js) and the page falls back
+   to one shared gutter, so the nav, the hero, the body and the footer all line
+   up on the same margin instead of keeping the four different paddings the
+   artboard happened to use.
+   --------------------------------------------------------------- */
+
+.page { --gutter: 56px; }
+
+@media (max-width: 1240px) { .page { --gutter: 40px; } }
+@media (max-width: 900px)  { .page { --gutter: 28px; } }
+@media (max-width: 620px)  { .page { --gutter: 20px; } }
+
+/* The canvas gave case studies a 64px margin where every other page uses 56,
+   so the logo jumped 8px as you moved between them. The nav and footer are the
+   same furniture on every page, so the whole site shares one margin. The about
+   page keeps its own wider 120px measure for the body copy, which is
+   deliberate — its nav still lines up with everyone else's. */
+@media (min-width: 1241px) {
+  .page[data-spy-root] > * {
+    padding-left: 56px !important;
+    padding-right: 56px !important;
+  }
+}
+
+/* Headline sizing.
+
+   The canvas fixes each h1 in pixels for a 1440px artboard, and the old
+   breakpoint steps ignored the width entirely: the home headline sat on two
+   lines at 620px and four at 375px. The home headline holds three lines while
+   the available width divided by the font size lands between 12.4 and 13.8, so
+   13 sits in the middle of that band at every width from 375 to 1130. Past
+   that the cap takes over and it resolves to the designed two lines.
+
+   var(--h1) is the designed size, published per headline by build.js — without
+   the cap the about page's 40px headline would grow larger on a tablet than it
+   is on a desktop. The 28px floor stops a narrow phone shrinking it to
+   nothing, and happens to land inside the three-line band at 375 too. */
+@media (max-width: 1240px) {
+  .page h1 {
+    font-size: clamp(
+      28px,
+      calc((100vw - 2 * var(--gutter, 40px)) / 13),
+      var(--h1, 72px)
+    ) !important;
+    letter-spacing: -.02em !important;
+  }
+}
+
+@media (max-width: 1240px) {
+  /* the widest grids lose a column before everything else collapses */
+  [data-cols="5"] { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+
+  /* every band of the page, and the case-study two-column body inside it */
+  .page > *,
+  .page [style*="grid-template-columns:250px"],
+  .page [style*="grid-template-columns: 250px"] {
+    padding-left: var(--gutter) !important;
+    padding-right: var(--gutter) !important;
+  }
+
+  /* The contents column stays through tablet — it is what tells you where you
+     are in a long case study — it just narrows, and the body takes what is
+     left. Only the phone breakpoint drops it. */
+  .page [style*="grid-template-columns:250px"],
+  .page [style*="grid-template-columns: 250px"] {
+    grid-template-columns: 176px minmax(0, 1fr) !important;
+    gap: 40px !important;
+  }
+}
+
+@media (max-width: 900px) {
+  /* h1 sizing is fluid and lives on the element itself (see fluidHeadings in
+     build.js). */
+
+  /* A case study's body column is much narrower than the page now that the
+     contents column sits beside it, so the grids inside it go single-column a
+     breakpoint earlier than they do elsewhere. */
+  [data-spy-root] [data-cols] { grid-template-columns: minmax(0, 1fr) !important; }
+
+  /* Grids step down a level; see data-cols in build.js. */
+  [data-cols="5"], [data-cols="4"], [data-cols="3"] { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  [data-cols="2"] { grid-template-columns: minmax(0, 1fr) !important; }
+
+  /* Every rule above is about a content grid inside a case study's body. The
+     body's own layout grid — the contents column beside the body — is not one,
+     but it carries data-cols="2" like the rest, so it gets caught by the same
+     selectors and wins on source order. Collapsing it drops the contents
+     column into the same column as the body, and because that column is
+     sticky it then pins itself over the text as the page scrolls. It keeps its
+     two columns here and folds away for real at 620. */
+  .page [style*="grid-template-columns:250px"],
+  .page [style*="grid-template-columns: 250px"] {
+    grid-template-columns: 176px minmax(0, 1fr) !important;
+  }
+
+  /* The one five-up in a case study is wonderMakr's row of client logos —
+     small marks, not five columns of reading. Stacking them the way the rule
+     above stacks everything else turns a 56px strip into five full-width
+     tiles, so it keeps a grid instead. */
+  [data-spy-root] [data-cols="5"] { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+
+  /* The about hero puts the portrait beside the text; stack it. */
+  [data-hero-split] { flex-direction: column !important; }
+  [data-hero-split] > * { width: 100% !important; }
+
+  /* Footer: the row becomes a column, and the "Have an idea? Let's chat!"
+     block leads it rather than trailing the buttons — it is the invitation, and
+     stacked it would otherwise land under the sign-off at the very bottom of
+     the page. It is reordered rather than moved in the markup, which is safe
+     here because the block holds no focusable content: the tab order through
+     the footer is the two buttons either way. */
+  [data-foot] { flex-direction: column !important; align-items: flex-start !important; }
+  [data-foot] [data-foot-cta] { order: -1; align-items: flex-start !important; }
+}
+
+/* The contents column pins 96px down, which was clearance for the nav bar. The
+   bar is gone by the time it pins — it rides away on the first real scroll and
+   comes back only at the top of the page, where the column is in flow again —
+   so that clearance was dead space that left the list hanging well below the
+   top of the text it indexes. */
+.page [style*="grid-template-columns:250px"] > div:first-child,
+.page [style*="grid-template-columns: 250px"] > div:first-child {
+  top: 40px !important;
+}
+
+/* The contents list and the back link are what you point at on a case study,
+   so they answer, both darkening to the colour the active entry already uses.
+   paint() in script.js writes the list's resting colour inline on every scroll,
+   so these have to outrank an inline style. */
+
+[data-spy-link],
+[data-backlink],
+.backtop { transition: color .18s ease; }
+
+/* The back link is not fenced behind (hover: hover): a touch browser that
+   leaves :hover stuck on it just shows one link dark, which is harmless, while
+   falling through to the canvas's a:hover would leave it gold. */
+[data-backlink]:hover,
+.backtop:hover { color: #14141C !important; }
+
+/* The list is, because there a stuck :hover would strand one entry looking
+   like the section you are in. */
+@media (hover: hover) {
+  [data-spy-link]:hover { color: #14141C !important; }
+}
+
+@media (max-width: 620px) {
+
+  /* The contents column folds away entirely and the body centres; the back
+     link it carried is replaced by the one above the title. */
+  [data-spy-link] { display: none !important; }
+  .page [style*="grid-template-columns:250px"],
+  .page [style*="grid-template-columns: 250px"] {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 0 !important;
+  }
+  .page [style*="grid-template-columns:250px"] > div:first-child,
+  .page [style*="grid-template-columns: 250px"] > div:first-child { display: none !important; }
+  .page [style*="grid-template-columns:250px"] > *,
+  .page [style*="grid-template-columns: 250px"] > * {
+    width: 100%;
+    max-width: var(--measure);
+    margin-inline: auto;
+  }
+  .backtop { display: block; }
+
+  /* Card title and its "AMD · SHIPPED 2026" meta stop fighting for width. */
+  .page [style*="align-items:baseline;gap:16px"] {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 6px !important;
+  }
+
+  .wordmark img { width: 28px; height: 28px; }
+
+  /* h1's floor is 28px, so the section heading steps just under it to keep the
+     hierarchy right on a narrow screen. This is a responsive step, not an
+     eighth size in the scale. */
+  .page h2 { font-size: 24px !important; }
+  [data-cols] { grid-template-columns: minmax(0, 1fr) !important; }
+}
+
+/* --- the hero's role / team / timeline / skills row -----------------------
+   A four-up like the grids above, but it sits over the case study rather than
+   inside its narrow body column, so it does not step down with them: it keeps
+   its row through tablet and stacks only on a phone. The canvas set it at
+   gap: 0 with every cell inset 24px, which reads as four columns and collapses
+   into one unbroken run of labels and values the moment it stacks. So the
+   inset becomes a right-hand gutter as the columns tighten — the first label
+   then lines up with the rest of the page — and the stack gets a real row gap.
+
+   These sit after the blocks above rather than inside them because the generic
+   [data-spy-root] [data-cols] and [data-cols] collapses match this row too and
+   are written at the same specificity. */
+
+/* The canvas inset every cell 24px on both sides, which pushed the first label
+   in off the margin the hero band above and the body below both sit on. The
+   inset becomes a gutter between the columns instead, so the row starts and
+   ends flush with the rest of the page at every width. */
+.page [data-meta] > * { padding: 0 24px 0 0 !important; }
+.page [data-meta] > :last-child { padding-right: 0 !important; }
+
+@media (max-width: 900px) {
+  .page [data-meta] { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+  .page [data-meta] > * { padding: 0 14px 0 0 !important; }
+}
+
+@media (max-width: 620px) {
+  .page [data-meta] {
+    grid-template-columns: minmax(0, 1fr) !important;
+    row-gap: 26px !important;
+  }
+  .page [data-meta] > * { padding: 0 !important; }
+}
+
+/* ---------------------------------------------------------------
+   4. Mobile menu
+
+   The four nav links need about 415px of bar to sit at their designed
+   13px/.14em, so below 620px they hand over to a burger. The nav bar stays
+   above the panel: the logo and the burger keep their place, and the burger
+   animates into the close control instead of being swapped for another one.
+   --------------------------------------------------------------- */
+
+.burger {
+  display: none;
+  position: relative;
+  width: 44px;                 /* a comfortable touch target */
+  height: 44px;
+  margin-right: -10px;         /* optically aligns the bars with the gutter */
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.burger__box {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 22px;
+  height: 14px;
+  transform: translate(-50%, -50%);
+}
+
+.burger__box > span {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 1.5px;
+  border-radius: 2px;
+  background: #14141C;
+  /* the bars slide together first, then rotate — the delay is what makes it
+     read as a fold rather than a spin */
+  transition:
+    top .22s cubic-bezier(.2, .8, .25, 1) .18s,
+    transform .22s cubic-bezier(.2, .8, .25, 1),
+    opacity .12s ease .1s;
+}
+
+.burger__box > span:nth-child(1) { top: 0; }
+.burger__box > span:nth-child(2) { top: 50%; margin-top: -0.75px; }
+.burger__box > span:nth-child(3) { top: 100%; margin-top: -1.5px; }
+
+/* open: bars meet in the middle, then cross */
+.burger[aria-expanded="true"] .burger__box > span {
+  transition:
+    top .22s cubic-bezier(.2, .8, .25, 1),
+    transform .22s cubic-bezier(.2, .8, .25, 1) .18s,
+    opacity .12s ease .1s;
+}
+.burger[aria-expanded="true"] .burger__box > span:nth-child(1) {
+  top: 50%;
+  margin-top: -0.75px;
+  transform: rotate(45deg);
+}
+.burger[aria-expanded="true"] .burger__box > span:nth-child(2) {
+  opacity: 0;
+  transform: scaleX(.4);
+}
+.burger[aria-expanded="true"] .burger__box > span:nth-child(3) {
+  top: 50%;
+  margin-top: -0.75px;
+  transform: rotate(-45deg);
+}
+
+.menu {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  background: var(--surface);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .32s ease, visibility 0s linear .32s;
+}
+
+.menu[data-open] {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity .32s ease, visibility 0s;
+}
+
+.menu__inner {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 40px;
+  width: 100%;
+  /* clears the nav bar, which floats above this panel */
+  padding: 104px var(--gutter, 20px) calc(28px + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+
+.menu__links {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
+.menu__links a {
+  font-family: 'Newsreader', Georgia, serif;
+  font-size: 32px;
+  line-height: 1.24;
+  letter-spacing: -.02em;
+  color: #80808E;
+  text-decoration: none;
+  transition: color .3s ease, transform .3s cubic-bezier(.2, .8, .25, 1);
+}
+
+.menu__links a[aria-current="page"] { color: #14141C; }
+.menu__links a:active { transform: translateX(4px); }
+
+/* the links rise in behind the panel fade, one after the next */
+.menu[data-open] .menu__links a { animation: inkUp .5s cubic-bezier(.2, .8, .25, 1) both; }
+.menu[data-open] .menu__links a:nth-child(1) { animation-delay: .06s; }
+.menu[data-open] .menu__links a:nth-child(2) { animation-delay: .12s; }
+.menu[data-open] .menu__links a:nth-child(3) { animation-delay: .18s; }
+.menu[data-open] .menu__links a:nth-child(4) { animation-delay: .24s; }
+
+.menu__cta { display: flex; flex-direction: column; gap: 12px; }
+
+.menu__btn {
+  display: block;
+  padding: 18px 26px;
+  border: 1px solid rgba(20, 20, 28, .28);
+  border-radius: 999px;
+  font-family: 'DM Sans', system-ui, sans-serif;
+  font-size: 13px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  text-align: center;
+  color: #14141C;
+  text-decoration: none;
+  transition: background .3s ease, border-color .3s ease, transform .3s cubic-bezier(.2, .8, .25, 1);
+}
+
+.menu__btn--fill { background: #C8A253; border-color: #C8A253; }
+.menu__btn:active { transform: translateY(1px); }
+
+.menu[data-open] .menu__btn { animation: inkUp .5s cubic-bezier(.2, .8, .25, 1) both; }
+.menu[data-open] .menu__btn:nth-child(1) { animation-delay: .28s; }
+.menu[data-open] .menu__btn:nth-child(2) { animation-delay: .34s; }
+
+/* The panel and its scroll lock only exist at the burger breakpoint. Scoping
+   both to the media query means that growing past it always releases them,
+   even if no resize event reaches the script. */
+@media (max-width: 620px) {
+  body[data-menu-open] { overflow: hidden; }
+}
+
+@media (min-width: 621px) {
+  .menu { display: none; }
+}
+
+@media (max-width: 620px) {
+  /* gated on the `js` class: without scripting the burger could not open
+     anything, so the plain links stay rather than leaving no way to navigate */
+  .js .burger { display: block; }
+  .js [data-navlinks] { display: none !important; }  /* beats the inline display:flex */
+  :root:not(.js) [data-navlinks] { gap: 12px !important; }
+  :root:not(.js) [data-navlinks] a { font-size: 12px !important; letter-spacing: .1em !important; white-space: nowrap; }
+  /* the bar has to sit above the panel for the burger to become its close */
+  [data-inknav] { z-index: 70 !important; }
+}
+
+/* very short screens: let the links breathe less rather than clip */
+@media (max-width: 620px) and (max-height: 640px) {
+  .menu__inner { padding-top: 88px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .menu, .burger__box > span, [data-inknav] { transition: none; }
+  .menu[data-open] .menu__links a,
+  .menu[data-open] .menu__btn { animation: none; }
+}
+
+/* ---------------------------------------------------------------
+   5. "Outside design, you can find me..."
+
+   Hovering one photo lifts and tilts it, dims the other three, and slides its
+   caption out from behind the image. The caption box is clipped and sits at
+   top:100%, so the caption starts hidden behind the photo and nothing it does
+   shifts the grid. Touch devices get the same thing on tap (see script.js).
+   --------------------------------------------------------------- */
+
+[data-outphoto] {
+  transition:
+    transform .45s cubic-bezier(.2, .8, .25, 1),
+    opacity .35s ease,
+    filter .35s ease;
+  will-change: transform;
+}
+
+.outcap {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  display: block;
+  height: 96px;          /* generous: clips nothing, and costs no layout */
+  overflow: hidden;      /* this is what hides the caption behind the photo */
+  pointer-events: none;
+}
+
+.outcap__in {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  padding-top: 12px;
+  font-family: 'DM Sans', system-ui, sans-serif;
+  font-size: 12px;
+  line-height: 1.45;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: #14141C;
+  text-wrap: pretty;
+  /* parked above the clip, i.e. behind the photo */
+  transform: translateY(-100%);
+  opacity: 0;
+  transition:
+    transform .45s cubic-bezier(.2, .8, .25, 1),
+    opacity .3s ease;
+}
+
+.outcap__emoji { font-size: 13px; line-height: 1.3; }
+
+/* Two triggers, kept strictly apart. Hover rules are fenced behind
+   (hover: hover) because a touch browser can leave :hover stuck on the last
+   element tapped, which otherwise fights the tap state below. The attribute
+   rules are unconditional and drive both paths. */
+
+@media (hover: hover) {
+  [data-outphoto]:hover {
+    transform: translateY(-12px) rotate(-2deg) scale(1.03);
+    z-index: 2;
+  }
+  [data-outphoto]:hover .outcap__in { transform: translateY(0); opacity: 1; }
+  [data-outrow]:hover [data-outphoto]:not(:hover) { opacity: .38; filter: saturate(.75); }
+}
+
+[data-outphoto][data-active] {
+  transform: translateY(-12px) rotate(-2deg) scale(1.03);
+  z-index: 2;
+}
+[data-outphoto][data-active] .outcap__in { transform: translateY(0); opacity: 1; }
+[data-outrow][data-has-active] [data-outphoto]:not([data-active]) {
+  opacity: .38;
+  filter: saturate(.75);
+}
+
+/* Below 900px the row holds a 2x2 grid rather than collapsing to one column,
+   and in that layout the captions are simply always there: each sits in flow
+   under its photo, and the lift, tilt and dim are dropped. A caption you have
+   to hunt for by tapping is worse than one that is just legible. */
+@media (max-width: 900px) {
+  [data-outrow][data-cols] {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    row-gap: 30px;
+    /* the canvas reserved 56px here for the caption to drop into; the caption
+       now takes real space, so the reservation is double-counting */
+    padding-bottom: 0 !important;
+  }
+
+  .outcap {
+    position: static;
+    height: auto;
+    overflow: visible;
+  }
+
+  .outcap__in {
+    transform: none;
+    opacity: 1;
+    transition: none;
+  }
+
+  /* no interaction in this layout, however it was triggered */
+  [data-outphoto]:hover,
+  [data-outphoto][data-active] {
+    transform: none;
+    z-index: auto;
+  }
+  [data-outrow]:hover [data-outphoto]:not(:hover),
+  [data-outrow][data-has-active] [data-outphoto]:not([data-active]) {
+    opacity: 1;
+    filter: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-outphoto], .outcap__in { transition: none; }
+  [data-outphoto]:hover, [data-outphoto][data-active] { transform: none; }
+}
+
+/* ---------------------------------------------------------------
+   6. Hero halftone blob
+
+   The canvas gives the hero `overflow: hidden`, which slices the blob along a
+   straight line at the bottom of the block — an arbitrary mid-page edge with
+   nothing to justify it. Letting it through means it carries on behind the
+   first project card instead, which reads as depth rather than a crop.
+
+   Footers keep their clip: there the blob is cut by the footer's own top
+   border and by the end of the page, both of which are real edges.
+   --------------------------------------------------------------- */
+
+.page > div:has(> [data-wave], > [style*="inkDrift"]):has(h1) {
+  overflow: visible !important;
+}
+
+/* ---------------------------------------------------------------
+   7. About hero: text beside portrait
+
+   The canvas relies on `justify-content: space-between` alone to separate the
+   two, which only works while there is slack. Between about 900 and 1150px the
+   text column grows to its max-width and the two meet with nothing in between.
+   A gap gives the pair a floor at every width; where slack already exists
+   space-between still distributes it, so the full-width layout is unchanged.
+   Below 900 the pair stacks and this becomes the vertical gap.
+   --------------------------------------------------------------- */
+
+[data-hero-split] { gap: clamp(24px, 4vw, 56px); }
+
+/* The canvas pins the column of sections at 820px inline; this is the one
+   place that width is set now. */
+[data-spy-root] div:has(> [data-spy-section]) {
+  max-width: var(--measure) !important;
+}
+
+/* ---------------------------------------------------------------
+   8. Case-study media
+
+   The artboard drops every image into a fixed-height box and crops it. These
+   assets are shown whole instead, at the aspect ratio they were exported at,
+   so the flows and boards stay readable. The box keeps its rounded corners.
+   --------------------------------------------------------------- */
+
+.page div:has(> .asset),
+.page div:has(> .fade),
+.page div:has(> .loop),
+.page div:has(> .reel),
+.page div:has(> .stage),
+.page div:has(> .browser) {
+  height: auto !important;
+  background: none !important;
+}
+
+.asset {
+  display: block;
+  width: 100%;
+  height: auto;          /* the file's own ratio governs */
+  border-radius: 14px;
+}
+
+/* --- before / after cross-fade ------------------------------------------- */
+
+.fade {
+  position: relative;
+  margin: 0;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 14px;
+  background: #F1F1EE;
+}
+
+.fade__layer {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* the "before" sits on top and fades away to reveal the "after" underneath */
+.fade__layer--first {
+  animation: flowFade 9s cubic-bezier(.4, 0, .2, 1) infinite;
+}
+
+.fade[data-paused] .fade__layer--first { animation-play-state: paused; }
+
+.fade__btn {
+  position: absolute;
+  bottom: 14px;
+  right: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(20, 20, 28, .72);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  color: #FFFFFF;
+  font-family: 'DM Sans', system-ui, sans-serif;
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+  user-select: none;
+  transition: opacity .25s ease, background .3s ease,
+              transform .3s cubic-bezier(.2, .8, .25, 1);
+}
+
+.fade__btn:hover { background: rgba(20, 20, 28, .9); transform: scale(1.06); }
+
+/* The control is chrome sitting on the artwork, so it stays out of the way
+   until you go looking for it. Three things bring it back: pointing at the
+   figure, tabbing to the button, and pausing — a paused comparison is just a
+   still, and the button is the only thing on screen that says why. Where there
+   is no pointer to hover with, it stays visible, since nothing would reveal
+   it. */
+@media (hover: hover) {
+  .fade__btn { opacity: 0; }
+
+  .fade:hover .fade__btn,
+  .fade__btn:focus-visible,
+  .fade[data-paused] .fade__btn { opacity: 1; }
+}
+
+/* --- a row of looping clips ----------------------------------------------- */
+/* U4RIA's last three content types are motion, and the design lays each out as
+   a row of tiles, the way its own still boards do. The clips are there to show
+   the work moving, not to be operated: muted, looping, no controls. They are
+   also what makes that page heavy — nearly thirty megabytes across ten files —
+   so nothing is fetched until a row comes near the viewport and a row that
+   scrolls away is paused again (`reels()` in script.js). */
+
+.reel {
+  display: flex;
+  gap: 8px;
+  margin: 0;
+  width: 100%;
+}
+
+.reel__clip {
+  display: block;
+  flex: 1 1 0;
+  min-width: 0;
+  aspect-ratio: var(--reel-ratio, 9 / 16);
+  object-fit: cover;
+  border-radius: 10px;
+  background: #E7E7E2;
+}
+
+/* --- looping vector demo, in its own document ----------------------------- */
+/* Each Solution flow on the wonderMakr page is a self-contained SVG animation
+   served out of media/. It runs in an iframe rather than inlined, so three of
+   them on one page cannot collide over element ids or globals, and each keeps
+   its own clock. The frame carries the ratio they were composed at (421 x 280)
+   and paints the same #F2F2F2 as .stage, so the band is there before the
+   document inside it loads. They are demonstrations, not controls — the iframe
+   takes no pointer events, and each animation sits out prefers-reduced-motion
+   on its own. */
+
+.loop {
+  position: relative;
+  margin: 0;
+  width: 100%;
+  aspect-ratio: 421 / 280;
+  overflow: hidden;
+  border-radius: 14px;
+  background: #F2F2F2;
+}
+
+.loop__frame {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  pointer-events: none;
+}
+
+/* --- flat stage for portrait screens and recordings ----------------------- */
+/* The design exports a phone mock centred on a #F2F2F2 band
+   (assets/go smart/final design.png). Those bands are far wider than the
+   reading column, so the band is rebuilt here rather than mapped 1:1 — at the
+   export's own proportions the phone would land 130px across the 768px
+   measure. `--stage-w` is the artwork's share of the band; the file's own
+   ratio gives the rest, so nothing is cropped or stretched. */
+
+.stage {
+  --stage-w: 30%;
+  display: flex;
+  justify-content: center;
+  margin: 0;
+  padding: 5% 0;
+  background: #F2F2F2;
+  border-radius: 14px;
+}
+
+.stage__media {
+  display: block;
+  width: var(--stage-w);
+  height: auto;
+}
+
+/* --- browser frame for the prototype recording ---------------------------- */
+/* Proportions measured off the canvas's own export of this shot: the frame is
+   64% of the stage, its title bar is 2.45% of the frame width, and the three
+   dots are 1.09% across, set at 2.45 / 4.27 / 6.09%. Everything is a
+   percentage so the frame holds its shape at any width. */
+
+.browser {
+  margin: 0;
+  padding: 5.9% 18% 3.5%;
+  background: #F2F2F2;
+  border-radius: 14px;
+}
+
+.browser__win {
+  overflow: hidden;
+  border-radius: 1.1%/1.7%;
+  border: 1px solid #DBDBDB;
+  /* the two drop shadows from the design: a wide, lifted one and a tight
+     contact shadow directly under the edge */
+  box-shadow:
+    0 20px 52px -4px rgba(0, 0, 0, .06),
+    0 2px 8px 0 rgba(0, 0, 0, .06);
+}
+
+.browser__bar {
+  display: flex;
+  align-items: center;
+  gap: 0.73%;
+  aspect-ratio: 4403 / 108;   /* the measured title-bar height */
+  padding: 0 2.45%;
+  background: #F4F4F4;
+}
+
+.browser__bar > span {
+  width: 1.09%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  flex: none;
+}
+
+.browser__bar > span:nth-child(1) { background: #CE5347; }
+.browser__bar > span:nth-child(2) { background: #D6A243; }
+.browser__bar > span:nth-child(3) { background: #58A942; }
+
+.browser__screen {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* wonderMakr's recording is a portrait window. Its chrome is measured off that
+   page's own export (assets/wondermakr/final demo.png): the title bar is 2.99%
+   of the window width, the dots 1.44% across and 0.91% apart, set 2.24% in,
+   and the corners are a 21px radius on a 1876px window. The window is widened
+   from the export's own 24.8% of the band for the same reason the stage above
+   is — 24.8% of this measure is 190px. */
+
+.browser--wm { padding: 5% 27%; }
+
+.browser--wm .browser__win { border-radius: 1.12%/0.84%; }
+
+.browser--wm .browser__bar {
+  gap: 0.91%;
+  aspect-ratio: 1876 / 56;
+  padding: 0 2.24%;
+}
+
+.browser--wm .browser__bar > span { width: 1.44%; }
+
+@media (max-width: 620px) {
+  /* the stage's generous margins cost too much width on a phone */
+  .browser { padding: 4% 6% 4%; }
+  .browser--wm { padding: 5% 14%; }
+}
+
+@media (max-width: 900px) {
+  /* a phone recording at 30% of a tablet's narrow body column is under 150px;
+     tablet and phone share the larger share */
+  .stage { --stage-w: 46%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fade__layer--first { animation: none; }
+  .fade__btn { transition: none; }
+}
+
+/* ---------------------------------------------------------------
+   9. Case-study rhythm and U4RIA's clips
+   --------------------------------------------------------------- */
+
+/* The rule between the summary and the process (the --- in each markdown).
+   The padding matches the gap between sections, so the line sits midway. */
+[data-divider] {
+  border-top: 1px solid rgba(20, 20, 28, .12);
+  padding-top: 74px;
+}
+
+/* U4RIA final content: text first, then the work at the full column width,
+   in the same order and at the same size at every breakpoint. */
+[data-stack] {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  gap: 20px !important;
+}
+
+.reel__item {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+}
+.reel__item .reel__clip { width: 100%; flex: none; }
+
+.reel__controls {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  display: flex;
+  gap: 6px;
+}
+
+/* same control as the before/after cross-fades */
+.reel__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(20, 20, 28, .72);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  color: #FFFFFF;
+  font-family: 'DM Sans', system-ui, sans-serif;
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background .3s ease, transform .3s cubic-bezier(.2, .8, .25, 1);
+}
+.reel__btn:hover { background: rgba(20, 20, 28, .9); transform: scale(1.06); }
+.reel__btn svg { width: 15px; height: 15px; display: block; }
+.reel__btn[aria-pressed="true"] { background: #14141C; }
+
+@media (max-width: 900px) {
+  /* four or three clips across the body column is 118px or less each on a
+     tablet or phone; two per row keeps them legible, and makes tablet and
+     phone behave the same */
+  .reel { flex-wrap: wrap; }
+  .reel__item { flex: 0 0 calc(50% - 4px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reel__btn { transition: none; }
+}
+
+/* a single phone recording is never larger than it is at full width */
+.stage__media { max-width: 230px; }
+
+/* Artwork exported with a transparent 62px margin (of 2400px) for its shadow.
+   Widening the image by that margin, and pulling it left by the same amount,
+   puts the artwork edge-to-edge with the text column; the shadow sits in the
+   gutter. Percentages resolve against the column, so this holds at any width. */
+.page div:has(> .asset--bleed) { overflow: visible !important; }
+.asset--bleed {
+  width: calc(100% * 2400 / 2276);
+  max-width: none;
+  margin-left: calc(-100% * 62 / 2276);
+  border-radius: 0;
+}
+
+/* wonderMakr client logos: one row spanning the container at every width.
+   Each mark's flex-grow is its aspect ratio (set in build.js), so they share
+   a height and scale with the container rather than wrap. */
+.logos{display:flex;flex-wrap:nowrap;align-items:center;justify-content:flex-start;gap:clamp(28px,6vw,72px);margin-top:4px}
+.logos__item{display:block;width:0;height:auto;min-width:0}
+
+/* AMD's walkthrough window is dark mode. Measured off
+   assets/amd/final demo placement.png (6872px wide): the window is 4364px,
+   inset 18.3% each side and 3.96% top and bottom; a 112px #1A1A1A title bar
+   with 48px dots, 80px in and 32px apart; no light stroke. */
+.browser--dark { padding: 3.96% 18.28%; }
+.browser--dark .browser__win { border-color: #1A1A1A; background: #1A1A1A; }
+.browser--dark .browser__bar { background: #1A1A1A; aspect-ratio: 4364 / 112; padding: 0 1.83%; gap: 0.73%; }
+.browser--dark .browser__bar > span { width: 1.1%; }

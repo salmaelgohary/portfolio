@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>layout audit</title>
+<style>body{margin:0;font:12px monospace} iframe{border:0;display:block}</style>
+</head>
+<body>
+<iframe id="f"></iframe>
+<script>
+/* Layout audit. Serve with tools/serve.js, open /tools/layout-audit.html and run
+   await measure('amd.html', 375) in the console. Loads a page at that width and
+   reports gutters, horizontal overflow, squeezed text and images wider than
+   their frame. Same origin, so the frame's DOM is readable. */
+window.measure = function (page, width) {
+  return new Promise((resolve) => {
+    const f = document.getElementById('f');
+    f.style.width = width + 'px';
+    f.style.height = '900px';
+    f.onload = () => setTimeout(() => {
+      const d = f.contentDocument, w = f.contentWindow;
+      const pg = d.querySelector('.page');
+      const box = pg.getBoundingClientRect();
+      const cs = (el) => w.getComputedStyle(el);
+
+      /* one gutter for every top-level band? */
+      const pads = [...pg.children].map((el) => {
+        const s = cs(el);
+        return parseFloat(s.paddingLeft) + ':' + parseFloat(s.paddingRight);
+      });
+
+
+      /* real horizontal overflow (ignore clipped decorative layers) */
+      const scrolls = d.documentElement.scrollWidth - w.innerWidth;
+
+      /* text wider than its container */
+      const squeezed = [...d.querySelectorAll('h1,h2,h3,p,span')].filter((el) => {
+        const b = el.getBoundingClientRect();
+        return b.width > 0 && el.scrollWidth > Math.ceil(b.width) + 2;
+      }).length;
+
+      /* images spilling past their frame */
+      const spill = [...d.images].filter((im) => {
+        const p = im.parentElement;
+        if (!p) return false;
+        const a = im.getBoundingClientRect(), b = p.getBoundingClientRect();
+        return a.width > b.width + 2;
+      }).length;
+
+      resolve({
+        page, width,
+        gutters: [...new Set(pads)],
+        scrolls,
+        squeezed,
+        spill,
+        docH: Math.round(d.documentElement.scrollHeight),
+      });
+    }, 450);
+    f.src = '../' + page;
+  });
+};
+</script>
+</body>
+</html>

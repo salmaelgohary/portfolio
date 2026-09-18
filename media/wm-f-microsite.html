@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>wonderMakr microsite scan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bitter:wght@500&family=Overpass:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  html, body { margin: 0; height: 100%; background: #F2F2F2; overflow: hidden; }
+  body { display: flex; align-items: center; justify-content: center; }
+  /* frame is 421 x 280, same as the Figma frame */
+  .wm-stage { width: 100vw; height: 100vh; display: block; background: #F2F2F2; }
+  .ov { font-family: 'Overpass', system-ui, sans-serif; font-weight: 700; }
+  .bt { font-family: 'Bitter', Georgia, serif; font-weight: 500; }
+</style>
+</head>
+<body>
+<svg class="wm-stage" id="stage" viewBox="0 0 421 280" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+  <rect width="421" height="280" fill="#F2F2F2"/>
+  <defs id="defs"></defs>
+  <g id="scene"></g>
+  <g id="fx" pointer-events="none"></g>
+</svg>
+<script>
+
+const NS = 'http://www.w3.org/2000/svg';
+const C = { gold:'#F2B705', body:'#D9D9D9', dark:'#1D2228', tan:'#E8C9A0', mag:'#D90AF2', navy:'#3E428C', flash:'#FFB8FF' };
+const $ = (id) => document.getElementById(id);
+const defs = $('defs'), scene = $('scene'), fx = $('fx');
+const f1 = (v) => (+v).toFixed(2);
+
+/* ---------- easing + one frame-driven clock ---------- */
+const linear = t => t;
+const easeInQuad = t => t * t;
+const easeOutQuad = t => 1 - (1 - t) * (1 - t);
+const easeOutCubic = t => 1 - Math.pow(1 - t, 3);
+const easeInOutCubic = t => (t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+const easeOutBack = t => { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2); };
+const lerp = (a, b, t) => a + (b - a) * t;
+
+let now = 0;
+const tweens = [];
+const tween = (ms, fn, ease = linear) => new Promise(r => tweens.push({ t0: null, ms, fn, ease, r }));
+const wait = (ms) => tween(ms, () => {});
+function frame(t) {
+  now = t;
+  for (const tw of tweens.slice()) {
+    if (tw.t0 === null) tw.t0 = now;
+    const p = tw.ms <= 0 ? 1 : Math.min(1, (now - tw.t0) / tw.ms);
+    tw.fn(tw.ease(p));
+    if (p >= 1) { tweens.splice(tweens.indexOf(tw), 1); tw.r(); }
+  }
+  requestAnimationFrame(frame);
+}
+
+/* ---------- subtle tap ripple ---------- */
+function el(tag, attrs, parent) {
+  const n = document.createElementNS(NS, tag);
+  for (const k in attrs) n.setAttribute(k, attrs[k]);
+  if (parent) parent.appendChild(n);
+  return n;
+}
+function ripple(x, y) {
+  const g = el('g', {}, fx);
+  const dot = el('circle', { cx: x, cy: y, r: 0, fill: C.navy, opacity: 0 }, g);
+  const ring = el('circle', { cx: x, cy: y, r: 3, fill: 'none', stroke: C.navy, 'stroke-width': .9, opacity: 0 }, g);
+  const ring2 = el('circle', { cx: x, cy: y, r: 3, fill: 'none', stroke: C.navy, 'stroke-width': .6, opacity: 0 }, g);
+  tween(820, (p) => {
+    const press = p < .22 ? easeOutQuad(p / .22) : 1;
+    dot.setAttribute('r', f1(4.2 * press));
+    dot.setAttribute('opacity', f1(.26 * (p < .22 ? press : 1 - (p - .22) / .78)));
+    const a = easeOutCubic(p);
+    ring.setAttribute('r', f1(3 + 15 * a));
+    ring.setAttribute('opacity', f1(.55 * (1 - p)));
+    const q = Math.max(0, (p - .18) / .82), b = easeOutCubic(q);
+    ring2.setAttribute('r', f1(3 + 11 * b));
+    ring2.setAttribute('opacity', f1(q > 0 ? .35 * (1 - q) : 0));
+  }).then(() => g.remove());
+  return wait(260);
+}
+
+/* ---------- vending machine artwork (local units: 146.5 x 244) ---------- */
+const MW = 146.5, MH = 244;
+const G = { gx: 32.4, gy: 44.3, gw: 79.7, gh: 154.7, b: 2.4, rows: 6, cols: 4, shelf: 2.4 };
+G.ix = G.gx + G.b; G.iy = G.gy + G.b; G.iw = G.gw - 2 * G.b; G.ih = G.gh - 2 * G.b;
+G.rh = (G.ih - (G.rows - 1) * G.shelf) / G.rows; G.cw = G.iw / G.cols;
+const cell = (r, c) => ({ x: G.ix + c * G.cw, y: G.iy + r * (G.rh + G.shelf), w: G.cw, h: G.rh });
+const PRIZES = [[3, 1], [2, 2], [4, 3]];
+function prizeBox(r, c) {
+  const k = cell(r, c), w = 12.8, h = 17.4, cx = k.x + k.w * .6;
+  return { x: cx - w / 2, y: k.y + k.h - h + .8, w, h, cx };
+}
+const MS = { x: 118.3, y: 93.6, w: 25.7, h: 45.5 };
+const TRAY = { x: 23.8, y: 212.4, w: 97.5, h: 16.3 };
+
+function mesh(o) {
+  let s = '', rings = [];
+  for (let i = 0; i <= o.n; i++) {
+    const t = i / o.n, u = 1 - t;
+    const cx = u * u * o.p0[0] + 2 * u * t * o.p1[0] + t * t * o.p2[0];
+    const cy = u * u * o.p0[1] + 2 * u * t * o.p1[1] + t * t * o.p2[1];
+    const dx = 2 * u * (o.p1[0] - o.p0[0]) + 2 * t * (o.p2[0] - o.p1[0]);
+    const dy = 2 * u * (o.p1[1] - o.p0[1]) + 2 * t * (o.p2[1] - o.p1[1]);
+    const ang = Math.atan2(dy, dx) + Math.PI / 2;
+    const rx = lerp(o.r0, o.r1, Math.sin(t * Math.PI / 2)), ry = rx * o.flat;
+    s += `<ellipse cx="${f1(cx)}" cy="${f1(cy)}" rx="${f1(rx)}" ry="${f1(ry)}" transform="rotate(${f1(ang * 180 / Math.PI)} ${f1(cx)} ${f1(cy)})"/>`;
+    const ring = [];
+    for (let j = 0; j < o.m; j++) {
+      const a = 2 * Math.PI * j / o.m, ex = rx * Math.cos(a), ey = ry * Math.sin(a);
+      ring.push([cx + ex * Math.cos(ang) - ey * Math.sin(ang), cy + ex * Math.sin(ang) + ey * Math.cos(ang)]);
+    }
+    rings.push(ring);
+  }
+  let d = '';
+  for (let j = 0; j < o.m; j++) d += 'M' + rings.map(r => f1(r[j][0]) + ',' + f1(r[j][1])).join('L');
+  return `<g fill="none" stroke="#fff" stroke-opacity="${o.op || .5}" stroke-width="${o.sw || .42}">${s}<path d="${d}"/></g>`;
+}
+const MESH_FRONT = { p0: [-40, -40], p1: [150, 30], p2: [150, 290], r0: 26, r1: 95, flat: .55, n: 22, m: 18 };
+const MESH_REAR = { p0: [190, -70], p1: [110, 60], p2: [-70, 40], r0: 20, r1: 110, flat: .5, n: 22, m: 18 };
+
+function gridSVG(p, skip) {
+  let prizes = '', coils = '', shelves = '';
+  PRIZES.forEach(([r, c], i) => {
+    if (i === skip) return;
+    const b = prizeBox(r, c);
+    prizes += `<rect id="${p}-prize${i}" x="${f1(b.x)}" y="${f1(b.y)}" width="${f1(b.w)}" height="${f1(b.h)}" fill="${C.mag}"/>`;
+  });
+  for (let r = 0; r < G.rows; r++) for (let c = 0; c < G.cols; c++) {
+    const k = cell(r, c), cx = k.x + k.w * .6, cy = k.y + k.h - 4.6;
+    coils += `<path d="M${f1(k.x + 2.4)},${f1(k.y + 5)}V${f1(k.y + k.h)}"/>`;
+    coils += `<circle cx="${f1(cx)}" cy="${f1(cy)}" r="5.1"/>`;
+  }
+  for (let r = 1; r < G.rows; r++) {
+    const y = cell(r, 0).y - G.shelf;
+    shelves += `<rect x="${f1(G.ix)}" y="${f1(y)}" width="${f1(G.iw)}" height="${G.shelf}" fill="${C.tan}"/>`;
+  }
+  const { ix, iy, iw, ih } = G;
+  const glass = `<polygon points="${f1(ix - 4)},${f1(iy + 96)} ${f1(ix + iw * .78)},${f1(iy - 4)} ${f1(ix + iw * .78 + 17)},${f1(iy - 4)} ${f1(ix + 13)},${f1(iy + 96)}" fill="#fff" opacity=".16"/>
+    <polygon points="${f1(ix + 22)},${f1(iy + 96)} ${f1(ix + iw + 20)},${f1(iy - 4)} ${f1(ix + iw + 30)},${f1(iy - 4)} ${f1(ix + 32)},${f1(iy + 96)}" fill="#fff" opacity=".1"/>`;
+  return `<rect x="${G.gx}" y="${G.gy}" width="${G.gw}" height="${G.gh}" fill="${C.gold}"/>
+    <rect x="${f1(ix)}" y="${f1(iy)}" width="${f1(iw)}" height="${f1(ih)}" fill="${C.dark}"/>
+    <g clip-path="url(#${p}-in)">
+      ${prizes}
+      <g id="${p}-coils" fill="none" stroke="#fff" stroke-width=".95">${coils}</g>
+      ${shelves}${glass}
+    </g>`;
+}
+
+function micrositeSVG(p) {
+  const { x, y, w, h } = MS;
+  return `<g transform="translate(${x} ${y})">
+    <rect width="${w}" height="${h}" fill="${C.gold}"/>
+    <rect x="2.3" y="2.2" width="21.1" height="31.6" fill="#fff"/>
+    <g id="${p}-msA" class="ov" font-size="2.45" text-anchor="middle" fill="#000">
+      <text x="12.85" y="16.4">Scan your</text><text x="12.85" y="19.6">card below</text>
+    </g>
+    <g id="${p}-msB" class="ov" font-size="2.7" text-anchor="middle" fill="#000" opacity="0">
+      <text x="12.85" y="18.6">Authorized!</text>
+    </g>
+    <rect x="7.4" y="36.6" width="10.9" height="4.3" fill="#000"/>
+    <rect id="${p}-msSlot" x="8.6" y="37.35" width="8.5" height="2.8" fill="${C.mag}"/>
+  </g>`;
+}
+
+function clipDefs(p) {
+  defs.insertAdjacentHTML('beforeend', `
+    <clipPath id="${p}-in"><rect x="${f1(G.ix)}" y="${f1(G.iy)}" width="${f1(G.iw)}" height="${f1(G.ih)}"/></clipPath>
+    <clipPath id="${p}-body"><rect x="0" y="0" width="${MW}" height="${MH}"/></clipPath>
+    <clipPath id="${p}-drop"><rect x="${f1(G.ix)}" y="${f1(G.iy)}" width="${f1(G.iw)}" height="${f1(G.ih)}"/>
+      <rect x="${TRAY.x + .8}" y="${TRAY.y + .8}" width="${TRAY.w - 1.6}" height="${TRAY.h - 1.6}"/></clipPath>`);
+}
+
+function machineSVG(p, { wrap = false, skip = -1 } = {}) {
+  clipDefs(p);
+  return `<rect width="${MW}" height="${MH}" fill="${wrap ? C.mag : C.body}"/>
+    ${wrap ? `<g clip-path="url(#${p}-body)">${mesh(MESH_FRONT)}</g>` : ''}
+    <rect x=".74" y=".74" width="145" height="242.5" fill="none" stroke="${C.gold}" stroke-width="1.485"/>
+    ${gridSVG(p, skip)}
+    ${micrositeSVG(p)}
+    <rect x="${TRAY.x}" y="${TRAY.y}" width="${TRAY.w}" height="${TRAY.h}" fill="${C.dark}" stroke="${C.gold}" stroke-width="1.4"/>`;
+}
+
+const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+function start(loop) {
+  if (reduced) return;
+  requestAnimationFrame((t) => { now = t; requestAnimationFrame(frame); });
+  loop();
+}
+
+/* ---------- scene: tap the badge, it scans, the microsite authorizes ---------- */
+const BADGE_REST = [244, 210], BADGE_SCAN = [175.6, 219.5];
+scene.innerHTML = `
+  <rect x="155" y="40" width="112.2" height="199.2" fill="${C.gold}"/>
+  <rect x="164.6" y="49" width="93" height="142.8" fill="#fff"/>
+
+  <g id="s1">
+    <text class="ov" x="211.1" y="84" font-size="11.4" text-anchor="middle" fill="#000">Welcome</text>
+    <text class="bt" x="211.1" y="104.5" font-size="9.6" text-anchor="middle" fill="#000">Scan your</text>
+    <text class="bt" x="211.1" y="116.3" font-size="9.6" text-anchor="middle" fill="#000">badge below</text>
+    <g id="chev" fill="none" stroke="#000" stroke-width="3.1" stroke-linejoin="miter">
+      <polyline points="200.6,142 211.1,152 221.6,142"/>
+      <polyline points="200.6,152.5 211.1,162.5 221.6,152.5"/>
+    </g>
+  </g>
+
+  <g id="s2" opacity="0">
+    <text class="bt" x="211.1" y="93" font-size="8.6" text-anchor="middle" fill="#000">Authorizing user...</text>
+    <g transform="translate(211.1 124)">
+      <circle r="10" fill="none" stroke="#E4E4E4" stroke-width="2.6"/>
+      <path id="spin" d="M10,0 A10,10 0 0 1 -3.1,9.5" fill="none" stroke="${C.dark}" stroke-width="2.6" stroke-linecap="round"/>
+    </g>
+  </g>
+
+  <g id="s3" opacity="0">
+    <text class="ov" x="211.1" y="80" font-size="11.4" text-anchor="middle" fill="#000">Authorized!</text>
+    <text class="bt" x="211.1" y="99.5" font-size="9.6" text-anchor="middle" fill="#000">Please pick up</text>
+    <text class="bt" x="211.1" y="111.3" font-size="9.6" text-anchor="middle" fill="#000">your swag.</text>
+    <g transform="translate(211.1 146)"><g id="gift">
+      <rect x="-11" y="-2.5" width="22" height="15.5" fill="#E8344B"/>
+      <rect x="-13" y="-9" width="26" height="7" fill="#F4485D"/>
+      <rect x="-2.1" y="-9" width="4.2" height="22" fill="${C.gold}"/>
+      <path d="M0,-9 C-3,-15 -10,-16 -9.5,-12 C-9,-9.5 -4,-9 0,-9 Z M0,-9 C3,-15 10,-16 9.5,-12 C9,-9.5 4,-9 0,-9 Z" fill="none" stroke="${C.gold}" stroke-width="2.1" stroke-linejoin="round"/>
+    </g></g>
+  </g>
+
+  <rect id="glow" x="186.2" y="205" width="49.8" height="21.6" rx="2.5" fill="none" stroke="${C.mag}" stroke-width="1.4" opacity="0"/>
+  <rect x="189.2" y="208" width="43.8" height="15.6" fill="#000"/>
+  <rect id="slot" x="194" y="210.4" width="34.8" height="10.8" fill="${C.mag}"/>
+
+  <g id="badge" transform="translate(${BADGE_REST[0]} ${BADGE_REST[1]})">
+    <path fill="#292929" fill-rule="evenodd" d="M5.4,0H66A5.4,5.4 0 0 1 71.4,5.4V40.2A5.4,5.4 0 0 1 66,45.6H5.4A5.4,5.4 0 0 1 0,40.2V5.4A5.4,5.4 0 0 1 5.4,0Z M8.4,6A1.4,1.4 0 0 0 8.4,8.8H63A1.4,1.4 0 0 0 63,6Z"/>
+    <circle cx="18" cy="23.6" r="3.9" fill="#fff"/>
+    <path d="M11,35.6 C11,30.2 14,28.6 18,28.6 C22,28.6 25,30.2 25,35.6 Z" fill="#fff"/>
+    <g stroke="#fff" stroke-width=".9"><path d="M33,19.5H61M33,24.3H61M33,29.1H61M33,33.8H61"/></g>
+  </g>`;
+
+const s1 = $('s1'), s2 = $('s2'), s3 = $('s3'), spin = $('spin'), gift = $('gift');
+const badge = $('badge'), slot = $('slot'), glow = $('glow'), chev = $('chev');
+const hexRgb = (h) => { const n = parseInt(h.slice(1), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; };
+const mix = (a, b, t) => { const A = hexRgb(a), B = hexRgb(b); return `rgb(${A.map((v, i) => Math.round(v + (B[i] - v) * t)).join(',')})`; };
+
+const setBadge = (x, y, s = 1) => badge.setAttribute('transform', `translate(${f1(x)} ${f1(y)}) translate(35.7 22.8) scale(${f1(s)}) translate(-35.7 -22.8)`);
+const setGift = (s) => gift.setAttribute('transform', `scale(${f1(Math.max(0, s))})`);
+const swap = (a, b, ms = 300) => tween(ms, p => { a.setAttribute('opacity', f1(1 - p)); b.setAttribute('opacity', f1(p)); });
+const moveBadge = (from, to, ms) => tween(ms, p => {
+  setBadge(lerp(from[0], to[0], p), lerp(from[1], to[1], p) - 9 * Math.sin(Math.PI * p), 1 + .05 * Math.sin(Math.PI * p));
+}, easeInOutCubic);
+
+let chevT = 0;
+function bobChevrons(p) { chev.setAttribute('transform', `translate(0 ${f1(1.6 * Math.sin(p * Math.PI * 2))})`); }
+
+async function loop() {
+  for (;;) {
+    await tween(1500, bobChevrons);
+
+    // 1. tap the badge, it moves onto the scanner
+    await ripple(BADGE_REST[0] + 35.7, BADGE_REST[1] + 22.8);
+    await moveBadge(BADGE_REST, BADGE_SCAN, 760);
+
+    // 2. scanner reads the badge
+    await tween(560, p => {
+      const f = Math.sin(Math.PI * p);
+      slot.setAttribute('fill', mix(C.mag, C.flash, f));
+      glow.setAttribute('opacity', f1(.9 * f));
+    });
+    slot.setAttribute('fill', C.mag); glow.setAttribute('opacity', 0);
+
+    // 3. authorizing...
+    await swap(s1, s2, 280);
+    await tween(1500, p => spin.setAttribute('transform', `rotate(${f1(p * 760)})`), t => 1 - Math.pow(1 - t, 1.4));
+
+    // 4. authorized
+    setGift(0);
+    await Promise.all([swap(s2, s3, 280), (async () => { await wait(120); await tween(520, p => setGift(p), easeOutBack); })()]);
+    await wait(2300);
+
+    // 5. reset
+    await Promise.all([moveBadge(BADGE_SCAN, BADGE_REST, 700), swap(s3, s1, 380)]);
+    setBadge(...BADGE_REST);
+    spin.removeAttribute('transform');
+  }
+}
+start(loop);
+
+</script>
+</body>
+</html>
