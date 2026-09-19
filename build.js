@@ -701,9 +701,52 @@ function homeHeroBlob(inner) {
   return inner.slice(0, first) + blob + inner.slice(end);
 }
 
+/* The U4RIA hero runs the same collage at up to a 330px column, so it keeps
+   the full-size WebP for a retina desktop but offers the Play card's 440px
+   JPEGs as well: a phone, whose columns are about 86px, then fetches those and
+   downloads less than half as much. The tiles are not lazy: this collage is the
+   hero, so deferring them leaves the band empty on arrival. */
+function collageSources(inner) {
+  const at = inner.indexOf('inset:-16%');
+  if (at < 0) throw new Error('U4RIA: no hero collage');
+  const start = inner.lastIndexOf('<div', at);
+  const { closeEnd } = matchDiv(inner, start);
+  const block = inner.slice(start, closeEnd).replace(/<img\b[^>]*>/g, (tag) => {
+    const src = /\bsrc="media\/([\w-]+)\.webp"/.exec(tag);
+    if (!src) return tag;
+    return tag.replace('<img', '<img decoding="async"' +
+      ` srcset="media/${src[1]}-card.jpg 440w, media/${src[1]}.webp 664w"` +
+      ' sizes="(max-width: 1440px) 23vw, 330px"');
+  });
+  return inner.slice(0, start) + block + inner.slice(closeEnd);
+}
+
+/* Card artwork below the first card waits until it is scrolled near, so a
+   phone spends its first connections on what is actually on screen. The first
+   card stays eager: it is the largest thing in view on load. */
+function lazyCardImages(inner) {
+  let first = true;
+  return inner.replace(/<img\b(?![^>]*\bloading=)[^>]*>/g, (tag) => {
+    if (!/src="media\/(?:proj-|c-|u-a|play-u4ria)/.test(tag)) return tag;
+    if (first) { first = false; return tag.replace('<img', '<img decoding="async"'); }
+    return tag.replace('<img', '<img loading="lazy" decoding="async"');
+  });
+}
+
+/* Phone mockups the canvas exported as PNG. Each only ever sits on its card's
+   own colour, on the listing and on the case study alike, so the transparent
+   corners are flattened onto that colour and the file ships as JPEG at about
+   half the weight. The PNGs stay in the canvas export folder as the source. */
+const FLATTENED = {
+  'c-sleep-1.png': 'c-sleep-1.jpg',                    /* onto #DDDDF6 */
+  'c-sleep-2.png': 'c-sleep-2.jpg',
+  'c-go-2.png': 'c-go-2.jpg',                          /* onto #D6E9DE */
+};
+
 /* Point asset references at media/. */
 function rewriteAssets(inner) {
-  return inner.replace(/(\ssrc=")\.?\/?([^"/][^"]*\.(?:png|jpg|jpeg|gif|svg|webp|html))"/g, '$1media/$2"');
+  return inner.replace(/(\ssrc=")\.?\/?([^"/][^"]*\.(?:png|jpg|jpeg|gif|svg|webp|html))"/g,
+    (_, pre, file) => `${pre}media/${FLATTENED[file] || file}"`);
 }
 
 /* Make the project cards clickable. */
@@ -755,7 +798,7 @@ function stripDecor(inner) {
   return inner;
 }
 
-/* Pixel size of a staged PNG or WebP, read from the file header. */
+/* Pixel size of a staged PNG, WebP or JPEG, read from the file header. */
 function imageSize(file) {
   const b = fs.readFileSync(path.join(ROOT, file));
   if (b.toString('ascii', 1, 4) === 'PNG') return { w: b.readUInt32BE(16), h: b.readUInt32BE(20) };
@@ -767,6 +810,15 @@ function imageSize(file) {
       return { w: (bits & 0x3fff) + 1, h: ((bits >> 14) & 0x3fff) + 1 };
     }
     if (kind === 'VP8X') return { w: 1 + b.readUIntLE(24, 3), h: 1 + b.readUIntLE(27, 3) };
+  }
+  if (b.readUInt16BE(0) === 0xffd8) {                   /* JPEG: the frame header carries the size */
+    for (let i = 2; i + 9 < b.length;) {
+      if (b[i] !== 0xff) { i++; continue; }
+      const marker = b[i + 1];
+      if (marker >= 0xc0 && marker <= 0xcf && ![0xc4, 0xc8, 0xcc].includes(marker))
+        return { w: b.readUInt16BE(i + 7), h: b.readUInt16BE(i + 5) };
+      i += 2 + b.readUInt16BE(i + 2);
+    }
   }
   throw new Error('imageSize: unsupported image ' + file);
 }
@@ -868,7 +920,14 @@ function bleedScreens(open, body) {
   const container = (html) => html.replace('<div data-projui="true" style="', '<div data-projui="true" style="container-type:inline-size;');
 
   if (body.includes('inset:-18%')) {
+    /* The collage is 24 tiles from 10 files, and it is the heaviest thing on
+       the Play page. It never renders wider than a 210px column, so it uses
+       its own 440px JPEGs (media/*-card.jpg) rather than the full-size WebP
+       the U4RIA case study shows at 480px — a little over half the bytes. The
+       exports carry no real transparency (0.01% of pixels), so JPEG loses
+       nothing. */
     return container(body
+      .replace(/src="media\/([\w-]+)\.webp"/g, 'src="media/$1-card.jpg"')
       .replace(/(<div style="width:)min\(210px, 14\.5833vw\)(;flex:none)/g, '$1min(210px, max(14.5833vw, 32cqw))$2')
       .replace(/(inset:-18%;display:flex;gap:)min\(18px, 1\.2500vw\)/, '$1min(18px, max(1.25vw, 2.4cqw))')
       .replace(/(flex-direction:column;gap:)min\(16px, 1\.1111vw\)/g, '$1min(16px, max(1.1111vw, 2.2cqw))'));
@@ -1272,11 +1331,12 @@ for (const board of boards) {
   inner = idSections(inner);
   inner = scaleArtBands(inner);
   inner = fluidWidths(inner);
+  if (!board.spy) inner = lazyCardImages(inner);
   if (page.file === 'trax.html') inner = traxMedia(inner);
   if (page.file === 'wondermakr.html') inner = wondermakrMedia(inner);
   if (page.file === 'go-smart.html') inner = goSmartMedia(inner);
   if (page.file === 'sleepwell.html') inner = sleepwellMedia(inner);
-  if (page.file === 'u4ria.html') inner = u4riaMedia(inner);
+  if (page.file === 'u4ria.html') inner = collageSources(u4riaMedia(inner));
   if (page.file === 'amd.html') inner = amdMedia(inner);
   if (board.spy) {
     const cut = stripImageCaptions(inner);
