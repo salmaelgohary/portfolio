@@ -13,6 +13,11 @@
 
 module.exports = {
 
+  /* "pixels" takes the same purple as "systems" on the about page (#5B47FF) */
+  'index.html': [
+    ['<span style="color: rgb(75, 74, 192);', '<span style="color: rgb(91, 71, 255);'],
+  ],
+
   'trax.html': [
     ['Five key problems',
      'I found five key problems:'],
