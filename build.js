@@ -678,6 +678,29 @@ function heroMetaFromMarkdown(inner, file) {
   return inner.slice(0, openEnd) + html + inner.slice(closeStart);
 }
 
+/* The home hero carries the same halftone blob as the Play page's: the slower
+   inkDrift one, softer and less busy than the pair of calmWave layers the home
+   canvas drew. The Play blob is lifted from that page's own markup so the two
+   stay identical; the footer's blob is left alone. */
+function homeHeroBlob(inner) {
+  const play = boards.find((b) => b.label === '11C play');
+  const src = play && play.inner;
+  const from = src ? src.search(/<span style="[^"]*animation:inkDrift[^"]*">/) : -1;
+  if (from < 0) throw new Error('home blob: no drift blob on the play page');
+  const blob = src.slice(from, matchTag(src, from, 'span').closeEnd);
+
+  const marker = '<span style="position:absolute;right:-30px;top:-120px';
+  const first = inner.indexOf(marker);
+  if (first < 0) throw new Error('home blob: no hero blob found');
+  let end = first;
+  for (let n = 0; n < 2; n++) {                        /* the hero's two wave layers */
+    const at = inner.indexOf(marker, end);
+    if (at < 0 || inner.slice(end, at).trim()) throw new Error('home blob: unexpected markup between the wave layers');
+    end = matchTag(inner, at, 'span').closeEnd;
+  }
+  return inner.slice(0, first) + blob + inner.slice(end);
+}
+
 /* Point asset references at media/. */
 function rewriteAssets(inner) {
   return inner.replace(/(\ssrc=")\.?\/?([^"/][^"]*\.(?:png|jpg|jpeg|gif|svg|webp|html))"/g, '$1media/$2"');
@@ -1179,10 +1202,11 @@ function shell(title, body, spy, menu, file) {
   const summary = h1 ? h1[1].replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim() : '';
   /* Link previews (iMessage, LinkedIn, Slack, X) need absolute URLs, and the
      banner is a JPEG at the 1200x630 they all crop to; WebP isn't read
-     everywhere. */
+     everywhere. There is deliberately no og:site_name: iMessage and others drop
+     it from the start of the title, so "Salma El Gohary | Product Designer"
+     was shown as just "Product Designer". */
   const url = SITE + (file === 'index.html' ? '/' : '/' + file);
   const meta = summary ? `<meta name="description" content="${escapeAttr(summary)}">
-<meta property="og:site_name" content="Salma El Gohary">
 <meta property="og:title" content="${escapeAttr(title)}">
 <meta property="og:description" content="${escapeAttr(summary)}">
 <meta property="og:type" content="website">
@@ -1243,7 +1267,7 @@ for (const board of boards) {
   inner = tagGridColumns(inner);
   if (board.spy) inner = heroMetaFromMarkdown(tagHeroMeta(inner), page.file);
   /* the home headline is set larger on a phone than the other pages' (see styles.css) */
-  if (page.file === 'index.html') inner = inner.replace('<h1 ', '<h1 data-home="true" ');
+  if (page.file === 'index.html') inner = homeHeroBlob(inner).replace('<h1 ', '<h1 data-home="true" ');
   inner = outsidePhotos(inner);
   inner = idSections(inner);
   inner = scaleArtBands(inner);
