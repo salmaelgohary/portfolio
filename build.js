@@ -14,6 +14,9 @@ const slots = JSON.parse(fs.readFileSync(path.join(ROOT, 'media/_slots.json'), '
 fs.rmSync(DIST, { recursive: true, force: true });
 fs.mkdirSync(path.join(DIST, 'media'), { recursive: true });
 
+/* the live address, for the absolute URLs link previews need */
+const SITE = 'https://salmaelgohary.com';
+
 /* ---------- links that need a real destination ---------- */
 const LINKS = {
   email: 'mailto:salma.elgohary@uwaterloo.ca',
@@ -689,6 +692,22 @@ function stripDecor(inner) {
   return inner;
 }
 
+/* Pixel size of a staged PNG or WebP, read from the file header. */
+function imageSize(file) {
+  const b = fs.readFileSync(path.join(ROOT, file));
+  if (b.toString('ascii', 1, 4) === 'PNG') return { w: b.readUInt32BE(16), h: b.readUInt32BE(20) };
+  if (b.toString('ascii', 0, 4) === 'RIFF' && b.toString('ascii', 8, 12) === 'WEBP') {
+    const kind = b.toString('ascii', 12, 16);
+    if (kind === 'VP8 ') return { w: b.readUInt16LE(26) & 0x3fff, h: b.readUInt16LE(28) & 0x3fff };
+    if (kind === 'VP8L') {
+      const bits = b.readUInt32LE(21);
+      return { w: (bits & 0x3fff) + 1, h: ((bits >> 14) & 0x3fff) + 1 };
+    }
+    if (kind === 'VP8X') return { w: 1 + b.readUIntLE(24, 3), h: 1 + b.readUIntLE(27, 3) };
+  }
+  throw new Error('imageSize: unsupported image ' + file);
+}
+
 /* The artboard is composed at 1440px. Inside the art bands — the coloured
    covers and project cards that clip a screenshot positioned inside them —
    every dimension is a fixed pixel value tuned to that width, so at a narrower
@@ -705,6 +724,15 @@ function stripDecor(inner) {
    every width — scaling those down would just squash them into a strip. */
 function scaleArtBands(inner) {
   const px = (n) => `min(${n}px, ${(n / 1440 * 100).toFixed(4)}vw)`;
+  /* Project cards (the screenshot previews in the work list) scale at double
+     rate below tablet width. A phone-width viewport is a much bigger fraction
+     of 720 than of 1440, so the whole card, box and screenshot together,
+     renders about twice as tall on a phone as the plain 1440 scale would give
+     it, which is what keeps the UI inside legible instead of shrinking to an
+     unreadable strip. It still reaches the same 1x-scale ceiling as every
+     other band once the viewport passes 720px, so nothing changes at tablet
+     width and above. */
+  const px2 = (n) => `min(${n}px, ${(n / 720 * 100).toFixed(4)}vw)`;
   const scaleProps = /\b(height|top|bottom|width|max-width|gap):\s*(\d{2,4})px/g;
   const scaleHeight = /\bheight:\s*(\d{3,4})px/;
 
@@ -716,6 +744,7 @@ function scaleArtBands(inner) {
       && scaleHeight.test(tag)
       && /(?:^|[;\s])(?:max-)?width:\s*\d{4}px/.test(tag);
   };
+  const isProjCard = (tag) => /\bdata-projart="true"/.test(tag);
 
   const out = [];
   let cursor = 0;
@@ -725,18 +754,81 @@ function scaleArtBands(inner) {
     if (m.index < cursor || !isBand(m[0])) continue;
     const { closeEnd } = matchDiv(inner, m.index);
     const openEnd = m.index + m[0].length;
+    /* Only height-type values double on a project card: the box itself, and
+       any nested height (the scrolling collage's column height) so it reveals
+       more of the same images rather than empty card colour below them.
+       Width, gap and top/bottom offsets keep the plain 1440 scale for every
+       band, project card or not, since those are what keeps the artwork from
+       spilling past the card's own edges at a phone width. */
+    const heightScale = isProjCard(m[0]) ? px2 : px;
 
-    /* the band itself only gives up its height; its width stays fluid */
-    const open = m[0].replace(scaleHeight, (d, n) => `height:${px(Number(n))}`);
     /* everything inside scales together so the crop is preserved */
     const body = inner.slice(openEnd, closeEnd).replace(/style="([^"]*)"/g, (full, style) =>
-      `style="${style.replace(scaleProps, (d, prop, n) => `${prop}:${px(Number(n))}`)}"`);
+      `style="${style.replace(scaleProps, (d, prop, n) => `${prop}:${(prop === 'height' ? heightScale : px)(Number(n))}`)}"`);
+    /* A card holding one wide screenshot (AMD, Trax) is the same height on a
+       phone whichever it is — AMD's 407 — so the two sit alike in the list. */
+    const single = isProjCard(m[0]) && (body.match(/<img\b/g) || []).length === 1;
+    /* the band itself only gives up its height; its width stays fluid */
+    const open = m[0].replace(scaleHeight, (d, n) =>
+      `height:${single ? px2(407).replace(/^min\(407px/, `min(${n}px`) : heightScale(Number(n))}`);
 
-    out.push(inner.slice(cursor, m.index), open, body);
+    out.push(inner.slice(cursor, m.index), open, isProjCard(m[0]) ? bleedScreens(open, body) : body);
     cursor = closeEnd;
     openRe.lastIndex = closeEnd;
   }
   return out.join('') + inner.slice(cursor);
+}
+
+/* On a project card the screenshot is meant to run off the bottom of the card,
+   the way it does at 1440. Once the card is taller relative to its width (see
+   px2 above) the plain vw scaling leaves the screenshot short of the bottom,
+   with empty card colour under it. So each screenshot is sized to reach the
+   card's bottom edge and run off it:
+
+   - A lone screenshot (AMD, Trax) is made just big enough to overshoot by
+     about 8px: (card height - top offset + 8px) / the image's h:w ratio,
+     never smaller than its plain 1440 scale, never larger than the design's
+     own size, capped to the card's width (trimming its sides would clip the
+     window's own edge).
+   - A pair of phones (SleepWell, GO Smart) keeps the 1440 proportions: the top
+     offset at the doubled phone scale, and 13% of each phone cut off the
+     bottom, as at 1440. That fixes the width: (card height - top) / (0.87 x
+     ratio), capped at 45% of the card each.
+   - The U4RIA collage gets larger tiles: columns are a third of the card.
+
+   The card's width is not the viewport's, so the wrapper (`data-projui`) is
+   made a size container and the caps are measured in its cqw. At 1440 and above
+   every one of these resolves to the designed size. */
+function bleedScreens(open, body) {
+  const cardH = /\bheight:(min\([^;"]*\))/.exec(open);
+  if (!cardH) return body;
+  const container = (html) => html.replace('<div data-projui="true" style="', '<div data-projui="true" style="container-type:inline-size;');
+
+  if (body.includes('inset:-18%')) {
+    return container(body
+      .replace(/(<div style="width:)min\(210px, 14\.5833vw\)(;flex:none)/g, '$1min(210px, max(14.5833vw, 32cqw))$2')
+      .replace(/(inset:-18%;display:flex;gap:)min\(18px, 1\.2500vw\)/, '$1min(18px, max(1.25vw, 2.4cqw))')
+      .replace(/(flex-direction:column;gap:)min\(16px, 1\.1111vw\)/g, '$1min(16px, max(1.1111vw, 2.2cqw))'));
+  }
+
+  const topDecl = /\btop:min\((\d+)px, ([\d.]+)vw\)/.exec(body);
+  const imgs = body.match(/<img\b[^>]*>/g) || [];
+  const shots = imgs.filter((t) => /width:min\(\d+px, [\d.]+vw\)/.test(t));
+  if (!topDecl || !shots.length) return body;
+
+  const pair = shots.length > 1;
+  const w = /width:min\((\d+)px, ([\d.]+vw)\)/.exec(shots[0]);
+  const { w: iw, h: ih } = imageSize(/\bsrc="([^"]+)"/.exec(shots[0])[1]);
+  const ratio = (ih / iw).toFixed(4);
+  const H = cardH[1];
+  const T = pair ? `min(${topDecl[1]}px, ${(topDecl[1] / 720 * 100).toFixed(4)}vw)` : `min(${topDecl[1]}px, ${topDecl[2]}vw)`;
+  const needed = pair ? `calc((${H} - ${T}) / ${(0.87 * ratio).toFixed(4)})` : `calc((${H} - ${T} + 8px) / ${ratio})`;
+  const width = `min(${w[1]}px, max(${w[2]}, min(${needed}, ${pair ? '45cqw' : '100cqw'})))`;
+  const drop = pair ? `calc(${H} - ${width} * ${(0.87 * ratio).toFixed(4)})` : `calc(${H} + 8px - ${width} * ${ratio})`;
+
+  let out = body.replace(/<img\b[^>]*>/g, (tag) => tag.replace(/width:min\(\d+px, [\d.]+vw\)/, `width:${width}`));
+  out = out.replace(topDecl[0], `top:max(${T}, ${drop})`);
+  return container(out);
 }
 
 /* Fixed widths wider than a phone become fluid with a cap.
@@ -1036,14 +1128,26 @@ function applyCopyFixes(inner, file) {
 }
 
 /* ---------- page shell ---------- */
-function shell(title, body, spy, menu) {
+function shell(title, body, spy, menu, file) {
   /* search results and link previews summarise the page with its headline */
   const h1 = /<h1\b[^>]*>([\s\S]*?)<\/h1>/.exec(body);
   const summary = h1 ? h1[1].replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim() : '';
+  /* Link previews (iMessage, LinkedIn, Slack, X) need absolute URLs, and the
+     banner is a JPEG at the 1200x630 they all crop to; WebP isn't read
+     everywhere. */
+  const url = SITE + (file === 'index.html' ? '/' : '/' + file);
   const meta = summary ? `<meta name="description" content="${escapeAttr(summary)}">
+<meta property="og:site_name" content="Salma El Gohary">
 <meta property="og:title" content="${escapeAttr(title)}">
 <meta property="og:description" content="${escapeAttr(summary)}">
 <meta property="og:type" content="website">
+<meta property="og:url" content="${url}">
+<meta property="og:image" content="${SITE}/media/og-image.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Salma El Gohary, product designer">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="${SITE}/media/og-image.jpg">
 ` : '';
   return `<!DOCTYPE html>
 <html lang="en">
@@ -1128,7 +1232,7 @@ for (const board of boards) {
      inline styles carry none. */
   inner = inner.replace(/style="[^"]*"/g, (m) => m.replace(/'(DM Sans|Newsreader)'/g, '$1'));
   if (/style="[^"]*'/.test(inner)) throw new Error(page.file + ': quote left in an inline style');
-  fs.writeFileSync(path.join(DIST, page.file), shell(page.title, inner.trim(), board.spy, menuHtml(page.nav)));
+  fs.writeFileSync(path.join(DIST, page.file), shell(page.title, inner.trim(), board.spy, menuHtml(page.nav), page.file));
   console.log('wrote', page.file, '(' + Math.round(inner.length / 1024) + 'KB)');
   built++;
 }
