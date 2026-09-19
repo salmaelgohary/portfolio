@@ -701,6 +701,22 @@ a:focus-visible {
   overflow: visible !important;
 }
 
+/* At 1440 the blob sits in the empty half of the hero, to the right of a
+   two-line headline. Below that the headline grows to three and four lines and
+   runs the full width, so the blob ends up behind the words and the halftone
+   dots make them harder to read. On a phone and a tablet it moves toward the
+   right edge and shrinks with the viewport, so the start of every line stays
+   clear; past 1024 the composition is the canvas's own again. */
+@media (max-width: 1024px) {
+  .page [style*="inkDrift"] {
+    right: -30vw !important;
+    top: -12vw !important;
+    width: 75vw !important;
+    height: 95vw !important;                            /* the hero is tall here, so the blob is too */
+    opacity: .55 !important;
+  }
+}
+
 /* ---------------------------------------------------------------
    7. About hero: text beside portrait
 
