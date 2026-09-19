@@ -638,6 +638,46 @@ function tagHeroMeta(inner) {
   return inner.replace(open, '<div data-meta="true"' + open.slice('<div'.length));
 }
 
+/* The row under a case study's title (role, team, timeline, skills) is written
+   from line 3 of that case study's markdown, so editing the markdown is what
+   changes it. Cells keep the canvas's own markup; only their text is replaced.
+   The second cell is Team where the study has one, else Type. Company is left
+   out, since the project card already names it. Timelines are shortened to
+   "8 weeks (Oct – Dec 2025)" and skills are capitalised and joined with a middle dot. */
+const META_MD = {
+  'amd.html': 'work/amd-install-manager.md',
+  'trax.html': 'work/trax-copilot.md',
+  'wondermakr.html': 'work/wondermakr-xvend.md',
+  'sleepwell.html': 'play/sleepwell.md',
+  'go-smart.html': 'play/go-smart.md',
+  'u4ria.html': 'play/u4ria.md',
+};
+const MONTHS = /\b(January|February|March|April|May|June|July|August|September|October|November|December)\b/g;
+
+function heroMetaFromMarkdown(inner, file) {
+  const md = META_MD[file];
+  if (!md) return inner;
+  const line = fs.readFileSync(path.join(ROOT, 'case-studies', md), 'utf8').split('\n').find((l) => l.startsWith('**Role:**'));
+  if (!line) throw new Error(md + ': no **Role:** line');
+  const f = {};
+  for (const [, k, v] of line.matchAll(/\*\*([^:*]+):\*\*\s*(.+?)(?=\s*·\s*\*\*|\s*$)/g)) f[k.trim()] = v.trim();
+  const second = f.Team ? ['Team', f.Team] : f.Type ? ['Type', f.Type] : null;
+  if (!f.Role || !second || !f.Timeline || !f.Skills) throw new Error(md + ': role, team/type, timeline and skills are all needed');
+  const timeline = f.Timeline.replace(MONTHS, (m) => m.slice(0, 3)).replace(/\s*[-–]\s*/g, ' – ');
+  const cells = [['Role', f.Role], second, ['Timeline', timeline], ['Skills', f.Skills.split(/,\s*/).map((k) => k[0].toUpperCase() + k.slice(1)).join(' · ')]];
+
+  const at = inner.indexOf('<div data-meta="true"');
+  if (at < 0) throw new Error(file + ': no hero metadata row');
+  const { openEnd, closeStart } = matchDiv(inner, at);
+  const row = inner.slice(openEnd, closeStart);
+  const cell = /<div style="[^"]*"><span style="[^"]*">[^<]*<\/span><span style="[^"]*">[^<]*<\/span><\/div>/.exec(row);
+  if (!cell) throw new Error(file + ': unrecognised metadata cell');
+  const [, wrap, labelStyle, valueStyle] = /^<div style="([^"]*)"><span style="([^"]*)">[^<]*<\/span><span style="([^"]*)">/.exec(cell[0]);
+  const html = cells.map(([k, v]) =>
+    `<div style="${wrap}"><span style="${labelStyle}">${k}</span><span style="${valueStyle}">${escapeHtml(v)}</span></div>`).join('');
+  return inner.slice(0, openEnd) + html + inner.slice(closeStart);
+}
+
 /* Point asset references at media/. */
 function rewriteAssets(inner) {
   return inner.replace(/(\ssrc=")\.?\/?([^"/][^"]*\.(?:png|jpg|jpeg|gif|svg|webp|html))"/g, '$1media/$2"');
@@ -822,7 +862,12 @@ function bleedScreens(open, body) {
   const ratio = (ih / iw).toFixed(4);
   const H = cardH[1];
   const T = pair ? `min(${topDecl[1]}px, ${(topDecl[1] / 720 * 100).toFixed(4)}vw)` : `min(${topDecl[1]}px, ${topDecl[2]}vw)`;
-  const needed = pair ? `calc((${H} - ${T}) / ${(0.87 * ratio).toFixed(4)})` : `calc((${H} - ${T} + 8px) / ${ratio})`;
+  /* Lone screenshots all take one width, worked out from the tallest card
+     (Trax's) so the AMD and Trax windows share their side margins exactly at
+     every viewport; each keeps its own top offset to still run off the bottom. */
+  const ref = imageSize('media/c-trax.webp');
+  const REF_H = `min(451px, ${(407 / 720 * 100).toFixed(4)}vw)`;
+  const needed = pair ? `calc((${H} - ${T}) / ${(0.87 * ratio).toFixed(4)})` : `calc((${REF_H} - ${T} + 8px) / ${(ref.h / ref.w).toFixed(4)})`;
   const width = `min(${w[1]}px, max(${w[2]}, min(${needed}, ${pair ? '45cqw' : '100cqw'})))`;
   const drop = pair ? `calc(${H} - ${width} * ${(0.87 * ratio).toFixed(4)})` : `calc(${H} + 8px - ${width} * ${ratio})`;
 
@@ -1196,7 +1241,9 @@ for (const board of boards) {
   inner = fluidHeadings(inner);
   inner = normaliseTypeScale(inner);
   inner = tagGridColumns(inner);
-  if (board.spy) inner = tagHeroMeta(inner);
+  if (board.spy) inner = heroMetaFromMarkdown(tagHeroMeta(inner), page.file);
+  /* the home headline is set larger on a phone than the other pages' (see styles.css) */
+  if (page.file === 'index.html') inner = inner.replace('<h1 ', '<h1 data-home="true" ');
   inner = outsidePhotos(inner);
   inner = idSections(inner);
   inner = scaleArtBands(inner);

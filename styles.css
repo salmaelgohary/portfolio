@@ -187,6 +187,16 @@ a:focus-visible {
   }
 }
 
+/* The home headline is the first thing on a phone, so it runs larger there than
+   the shared rule above: 34px at 375 rising to meet that rule at 620, where
+   the two agree (about 43px), so nothing jumps at the breakpoint. It wraps to
+   four lines at the smallest widths instead of three. */
+@media (max-width: 620px) {
+  .page h1[data-home] {
+    font-size: max(30px, calc(34px + (100vw - 375px) * .0384)) !important;
+  }
+}
+
 @media (max-width: 1240px) {
   /* the widest grids lose a column before everything else collapses */
   [data-cols="5"] { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }

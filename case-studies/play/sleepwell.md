@@ -1,6 +1,6 @@
 # SleepWell
 
-**Role:** Product Designer · **Type:** Personal Project · **Timeline:** 6 weeks (April–May 2022) · **Skills:** Product thinking. interaction design, usability testing
+**Role:** Product Designer · **Type:** Personal Project · **Timeline:** 6 weeks (April–May 2022) · **Skills:** Product thinking, interaction design, usability testing
 
 #### Overview
 
