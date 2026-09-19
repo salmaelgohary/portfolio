@@ -146,86 +146,86 @@ function replaceNav(inner, active) {
 const SHADOWED_EXPORTS = new Set(['u-social', 'u-recipe']);
 
 const SLOT_ASSETS = {
-  'a-catalog': ['amd-overview.png', 'AMD Software: Adrenalin Edition and its installer, where AI Bundle is offered'],
-  'a-current': ['amd-existing.png', 'The existing AI Bundle software catalog in Install Manager'],
-  'a-s1':      ['amd-playbooks.png', 'The Playbooks view: choose a task and install the software it needs'],
-  'a-s2':      ['amd-software.png', 'The Software view listing every application'],
-  'a-s3':      ['amd-sync.png', 'The Sync all overlay bringing installed versions in line'],
-  'a-flow':    ['amd-flow.png', 'User flow from discovering AI Bundle and Playbooks through to install'],
-  'a-d1':      ['amd-d-playbooks.png', 'Browse Playbooks element'],
-  'a-d2':      ['amd-d-resources.png', 'AI Resources panel'],
-  'a-d3':      ['amd-d-bundle.png', 'What is AI Bundle? explainer'],
-  'a-d4a':     ['amd-d-indiv.png', 'Individual install menu'],
-  'a-d4b':     ['amd-d-group.png', 'Group install overlay'],
-  'a-cards':   ['amd-cards.png', 'A compact software card beside a larger model card'],
-  'a-d5a':     ['amd-nav-list.png', 'Playbooks listed in the side panel'],
-  'a-d5b':     ['amd-nav-search.png', 'Playbooks side panel with search and filters'],
-  'a-e1':      ['amd-e1.png', 'Install overlay with a global drive selector'],
-  'a-e2':      ['amd-e2.png', 'Install overlay showing every install path'],
-  'a-e3':      ['amd-e3.png', 'Install overlay with paths hidden behind a control'],
-  'a-e4':      ['amd-e4.png', 'Install overlay tagging a locked install location'],
-  'a-final-overlay': ['amd-final-overlay.png', 'The final install overlay with install paths hidden and shown'],
-  'a-dep1':    ['amd-dep1.png', 'Individual install menu listing the dependencies it also installs'],
-  'a-dep2':    ['amd-dep2.png', 'A locked dependency with a hover explanation'],
-  'a-recovery': ['amd-recovery.png', 'Mixed result states: failed items to retry and a cancelled install'],
-  't-brand': ['trax-banner.png', 'Trax brand'],
-  't-nav':   ['trax-flow-current.png', 'The current flow: home page, All tab, select AI, click search bar, send query'],
-  't-sol1':  ['trax-nav.png', 'Copilot promoted into the top-level navigation'],
-  't-sol2':  ['trax-filters.png', 'Selected filters kept as editable pills below the question box'],
-  't-sol3':  ['trax-citations.png', 'A citation opening the reference panel beside the answer'],
-  't-res':   ['trax-affinity.png', 'Affinity map of the heuristic evaluation and feature requests'],
-  't-comp':  ['trax-comp.png', 'Competitive audit board'],
-  't-d1a':   ['trax-dec-1a.png', 'All suggested prompts shown upfront'],
-  't-d1b':   ['trax-dec-1b.png', 'Suggested prompts using progressive disclosure'],
-  't-d2a':   ['trax-dec-2a.png', 'Box-style filters'],
-  't-d2b':   ['trax-dec-2b.png', 'Pill-style filters'],
-  't-d3a':   ['trax-dec-3a.png', 'Different colours for each filter type'],
-  't-d3b':   ['trax-dec-3b.png', 'Similar colours across filter types'],
-  't-d4b':   ['trax-dec-4b.png', 'Inline citations with the reference panel'],
-  't-d5a':   ['trax-dec-5a.png', 'A new question overriding the current chat'],
-  't-d5b':   ['trax-dec-5b.png', 'A new question starting a new chat'],
+  'a-catalog': ['amd-overview.webp', 'AMD Software: Adrenalin Edition and its installer, where AI Bundle is offered'],
+  'a-current': ['amd-existing.webp', 'The existing AI Bundle software catalog in Install Manager'],
+  'a-s1':      ['amd-playbooks.webp', 'The Playbooks view: choose a task and install the software it needs'],
+  'a-s2':      ['amd-software.webp', 'The Software view listing every application'],
+  'a-s3':      ['amd-sync.webp', 'The Sync all overlay bringing installed versions in line'],
+  'a-flow':    ['amd-flow.webp', 'User flow from discovering AI Bundle and Playbooks through to install'],
+  'a-d1':      ['amd-d-playbooks.webp', 'Browse Playbooks element'],
+  'a-d2':      ['amd-d-resources.webp', 'AI Resources panel'],
+  'a-d3':      ['amd-d-bundle.webp', 'What is AI Bundle? explainer'],
+  'a-d4a':     ['amd-d-indiv.webp', 'Individual install menu'],
+  'a-d4b':     ['amd-d-group.webp', 'Group install overlay'],
+  'a-cards':   ['amd-cards.webp', 'A compact software card beside a larger model card'],
+  'a-d5a':     ['amd-nav-list.webp', 'Playbooks listed in the side panel'],
+  'a-d5b':     ['amd-nav-search.webp', 'Playbooks side panel with search and filters'],
+  'a-e1':      ['amd-e1.webp', 'Install overlay with a global drive selector'],
+  'a-e2':      ['amd-e2.webp', 'Install overlay showing every install path'],
+  'a-e3':      ['amd-e3.webp', 'Install overlay with paths hidden behind a control'],
+  'a-e4':      ['amd-e4.webp', 'Install overlay tagging a locked install location'],
+  'a-final-overlay': ['amd-final-overlay.webp', 'The final install overlay with install paths hidden and shown'],
+  'a-dep1':    ['amd-dep1.webp', 'Individual install menu listing the dependencies it also installs'],
+  'a-dep2':    ['amd-dep2.webp', 'A locked dependency with a hover explanation'],
+  'a-recovery': ['amd-recovery.webp', 'Mixed result states: failed items to retry and a cancelled install'],
+  't-brand': ['trax-banner.webp', 'Trax brand'],
+  't-nav':   ['trax-flow-current.webp', 'The current flow: home page, All tab, select AI, click search bar, send query'],
+  't-sol1':  ['trax-nav.webp', 'Copilot promoted into the top-level navigation'],
+  't-sol2':  ['trax-filters.webp', 'Selected filters kept as editable pills below the question box'],
+  't-sol3':  ['trax-citations.webp', 'A citation opening the reference panel beside the answer'],
+  't-res':   ['trax-affinity.webp', 'Affinity map of the heuristic evaluation and feature requests'],
+  't-comp':  ['trax-comp.webp', 'Competitive audit board'],
+  't-d1a':   ['trax-dec-1a.webp', 'All suggested prompts shown upfront'],
+  't-d1b':   ['trax-dec-1b.webp', 'Suggested prompts using progressive disclosure'],
+  't-d2a':   ['trax-dec-2a.webp', 'Box-style filters'],
+  't-d2b':   ['trax-dec-2b.webp', 'Pill-style filters'],
+  't-d3a':   ['trax-dec-3a.webp', 'Different colours for each filter type'],
+  't-d3b':   ['trax-dec-3b.webp', 'Similar colours across filter types'],
+  't-d4b':   ['trax-dec-4b.webp', 'Inline citations with the reference panel'],
+  't-d5a':   ['trax-dec-5a.webp', 'A new question overriding the current chat'],
+  't-d5b':   ['trax-dec-5b.webp', 'A new question starting a new chat'],
 
   /* wonderMakr. w-f1/f2/f3 and w-w1/w-w2/w-w3 are absent on purpose:
      wondermakrMedia builds the first three as looping animations, and collapses
      the second three into the single board the wireframes were laid out on. */
-  'w-pdf':        ['wm-pdf.png', 'Existing onboarding PDF — dense text, limited hierarchy, hard to scan'],
-  'w-logo-slack': ['wm-logo-slack.png', 'Slack'],
-  'w-logo-hp':    ['wm-logo-hp.png', 'HP'],
-  'w-logo-pepsi': ['wm-logo-pepsi.png', 'Pepsi'],
-  'w-logo-adidas':['wm-logo-adidas.png', 'Adidas'],
-  'w-logo-disney':['wm-logo-disney.png', 'Disney'],
-  'w-flow':       ['wm-flow.png', 'Refined user flow — new onboarding structure, entry points, progressive disclosure'],
-  'w-d1a':        ['wm-dec-1a.png', 'One-flow concept'],
-  'w-d1b':        ['wm-dec-1b.png', 'Separate-flow concept'],
-  'w-d2a':        ['wm-dec-2a.png', 'Deliverables-first layout'],
-  'w-d2b':        ['wm-dec-2b.png', 'Sample-visual-first layout'],
-  'w-d3a':        ['wm-dec-3a.png', 'Scroll-based dieline interaction'],
-  'w-d3b':        ['wm-dec-3b.png', 'Tap-through dieline interaction'],
-  'w-d4a':        ['wm-dec-4a.png', 'Microsite demo using a hover interaction'],
-  'w-d4b':        ['wm-dec-4b.png', 'Microsite demo using a draggable badge'],
+  'w-pdf':        ['wm-pdf.webp', 'Existing onboarding PDF — dense text, limited hierarchy, hard to scan'],
+  'w-logo-slack': ['wm-logo-slack.webp', 'Slack'],
+  'w-logo-hp':    ['wm-logo-hp.webp', 'HP'],
+  'w-logo-pepsi': ['wm-logo-pepsi.webp', 'Pepsi'],
+  'w-logo-adidas':['wm-logo-adidas.webp', 'Adidas'],
+  'w-logo-disney':['wm-logo-disney.webp', 'Disney'],
+  'w-flow':       ['wm-flow.webp', 'Refined user flow — new onboarding structure, entry points, progressive disclosure'],
+  'w-d1a':        ['wm-dec-1a.webp', 'One-flow concept'],
+  'w-d1b':        ['wm-dec-1b.webp', 'Separate-flow concept'],
+  'w-d2a':        ['wm-dec-2a.webp', 'Deliverables-first layout'],
+  'w-d2b':        ['wm-dec-2b.webp', 'Sample-visual-first layout'],
+  'w-d3a':        ['wm-dec-3a.webp', 'Scroll-based dieline interaction'],
+  'w-d3b':        ['wm-dec-3b.webp', 'Tap-through dieline interaction'],
+  'w-d4a':        ['wm-dec-4a.webp', 'Microsite demo using a hover interaction'],
+  'w-d4b':        ['wm-dec-4b.webp', 'Microsite demo using a draggable badge'],
 
   /* U4RIA. The last three content types are motion, so u4riaMedia builds
      those as rows of looping clips. */
-  'u-social': ['u-social.png', 'Instagram posts — Midjourney output beside the Canva refinement'],
-  'u-recipe': ['u-recipe.png', 'Recipe images across dietary categories from one template'],
+  'u-social': ['u-social.webp', 'Instagram posts — Midjourney output beside the Canva refinement'],
+  'u-recipe': ['u-recipe.webp', 'Recipe images across dietary categories from one template'],
 
   /* SleepWell. s-d1/s-d2/s-d3 are absent on purpose: sleepwellMedia builds
      those three as before/after cross-fades. */
-  's-system': ['sw-system.png', 'The system — fan, wristband, and app working together'],
-  's-f1':     ['sw-f1.png', 'Logging sleep quality from the home screen'],
-  's-f2':     ['sw-f2.png', 'Setting a desired nightly body temperature'],
-  's-f3':     ['sw-f3.png', 'An insight card expanded to explain a pattern'],
-  's-f4':     ['sw-f4.png', "The morning summary of the night's temperature data"],
-  's-comp':   ['sw-comp.png', 'Competitive review board of smart thermostat and sleep apps'],
-  's-crazy':  ['sw-crazy.png', 'Crazy 8s sheet with the selected direction marked'],
-  's-story':  ['sw-story.png', 'Storyboard'],
-  's-wire':   ['sw-wire.png', 'Mid-fidelity wireframes'],
+  's-system': ['sw-system.webp', 'The system — fan, wristband, and app working together'],
+  's-f1':     ['sw-f1.webp', 'Logging sleep quality from the home screen'],
+  's-f2':     ['sw-f2.webp', 'Setting a desired nightly body temperature'],
+  's-f3':     ['sw-f3.webp', 'An insight card expanded to explain a pattern'],
+  's-f4':     ['sw-f4.webp', "The morning summary of the night's temperature data"],
+  's-comp':   ['sw-comp.webp', 'Competitive review board of smart thermostat and sleep apps'],
+  's-crazy':  ['sw-crazy.webp', 'Crazy 8s sheet with the selected direction marked'],
+  's-story':  ['sw-story.webp', 'Storyboard'],
+  's-wire':   ['sw-wire.webp', 'Mid-fidelity wireframes'],
 
   /* GO Smart. g-plan and the final recording are portrait phone shots, so
      goSmartMedia stages those two rather than dropping them in here. */
-  'g-home':    ['go-bus.jpg', 'GO Transit bus and train'],
-  'g-journey': ['go-journey.png', 'Customer journey map with the three intervention points marked'],
-  'g-flow':    ['go-flows.png', 'Core user flow — calendar sync through to the departure reminder'],
+  'g-home':    ['go-bus.webp', 'GO Transit bus and train'],
+  'g-journey': ['go-journey.webp', 'Customer journey map with the three intervention points marked'],
+  'g-flow':    ['go-flows.webp', 'Core user flow — calendar sync through to the departure reminder'],
 };
 
 /* <image-slot> -> a real <img>, or a labelled placeholder when the slot is empty. */
@@ -292,7 +292,7 @@ function traxMedia(inner) {
   if (i >= 0) {
     const { closeEnd } = matchDiv(inner, i);
     inner = inner.slice(0, i) + crossfade(
-      'trax-userflows-before.png', 'trax-userflows-after.png',
+      'trax-userflows-before.webp', 'trax-userflows-after.webp',
       'User flows before the redesign', 'User flows after the redesign',
       '7120 / 2952', 'User flows, before and after'
     ) + inner.slice(closeEnd);
@@ -301,7 +301,7 @@ function traxMedia(inner) {
   /* the technical-constraint exploration, same treatment */
   inner = inner.replace(/<div class="slot slot--empty" data-slot="t-color"[^>]*>[\s\S]*?<\/div>/,
     crossfade(
-      'trax-constraint-before.png', 'trax-constraint-after.png',
+      'trax-constraint-before.webp', 'trax-constraint-after.webp',
       'Colour-coded codebook exploration before the constraint',
       'Codebook exploration after the constraint',
       '7120 / 2952', 'Codebook exploration, before and after'
@@ -351,7 +351,7 @@ function wondermakrMedia(inner) {
     const { closeEnd } = matchDiv(inner, gridStart);
     inner = inner.slice(0, gridStart) +
       '<div style="height:200px;border-radius:14px;overflow:hidden;background:#F1F1EE">' +
-      '<img class="asset" src="media/wm-wireframes.png" alt="Mid-fi wireframes and concepts — onboarding structure, the interactive microsite demo, and component information and deliverables" loading="lazy" decoding="async">' +
+      '<img class="asset" src="media/wm-wireframes.webp" alt="Mid-fi wireframes and concepts — onboarding structure, the interactive microsite demo, and component information and deliverables" loading="lazy" decoding="async">' +
       '</div>' +
       inner.slice(closeEnd);
   }
@@ -362,14 +362,14 @@ function wondermakrMedia(inner) {
     `<figure class="browser browser--wm">
   <div class="browser__win">
     <div class="browser__bar" aria-hidden="true"><span></span><span></span><span></span></div>
-    ${media('wm-demo.gif', 'browser__screen', 'Walkthrough of the complete onboarding experience')}
+    ${media('wm-demo.webp', 'browser__screen', 'Walkthrough of the complete onboarding experience')}
   </div>
 </figure>`);
 
   /* The client logos sit as one left-aligned strip rather than five equal
      tiles. The exports are cropped to their marks, so they share one height
      and shrink together (see .logos in styles.css) instead of wrapping. */
-  const logo = inner.indexOf('src="media/wm-logo-slack.png"');
+  const logo = inner.indexOf('src="media/wm-logo-slack.webp"');
   if (logo < 0) throw new Error('wonderMakr: no logo row');
   const rowStart = inner.lastIndexOf('<div data-cols="5"', logo);
   if (rowStart < 0) throw new Error('wonderMakr: no grid around logos');
@@ -395,10 +395,10 @@ function wondermakrMedia(inner) {
 function amdMedia(inner) {
   /* the two views swap in place, on the same loop as the before/after pairs */
   inner = inner.replace(/<div class="slot slot--empty" data-slot="a-views"[^>]*>[\s\S]*?<\/div>/,
-    crossfade('amd-views-1.png', 'amd-views-2.png',
+    crossfade('amd-views-1.webp', 'amd-views-2.webp',
       'The Playbooks view', 'The Software view', '7564 / 2952', 'Playbooks and Software views'));
   inner = inner.replace(/<div class="slot slot--empty" data-slot="a-models"[^>]*>[\s\S]*?<\/div>/,
-    crossfade('amd-models-before.png', 'amd-models-after.png',
+    crossfade('amd-models-before.webp', 'amd-models-after.webp',
       'Playbooks and Software views with model cards', 'The same views after models were removed',
       '7120 / 2952', 'Model removal, before and after'));
   /* the walkthrough, in a dark-mode window measured off
@@ -431,15 +431,15 @@ function amdMedia(inner) {
    label of its own.
 */
 const SW_DECISIONS = [
-  ['s-d1', 'sw-dec-1a.png', 'sw-dec-1b.png',
+  ['s-d1', 'sw-dec-1a.webp', 'sw-dec-1b.webp',
    'An icon-only plus button for sleep logging',
    'The same action labelled Log Sleep',
    'Sleep logging, before and after'],
-  ['s-d2', 'sw-dec-2a.png', 'sw-dec-2b.png',
+  ['s-d2', 'sw-dec-2a.webp', 'sw-dec-2b.webp',
    'A long unbroken article',
    'The same content shortened, with a progress bar',
    'Educational content, before and after'],
-  ['s-d3', 'sw-dec-3a.png', 'sw-dec-3b.png',
+  ['s-d3', 'sw-dec-3a.webp', 'sw-dec-3b.webp',
    'A card that expanded on a hidden drag gesture',
    'The same card with a tap-to-expand arrow',
    'Expanding a card, before and after'],
@@ -577,9 +577,9 @@ function removeSlot(inner, id) {
    Its two portrait shots sit on the flat stage rather than being cropped into
    the artboard's fixed-height boxes. */
 const GO_SOLUTION = [
-  ['go-sol-1.png', 'Reminders that account for a rider consistently leaving late'],
-  ['go-sol-2.png', 'A departure time updating as live traffic and weather change'],
-  ['go-sol-3.png', 'A weekly bus plan built from an imported class calendar'],
+  ['go-sol-1.webp', 'Reminders that account for a rider consistently leaving late'],
+  ['go-sol-2.webp', 'A departure time updating as live traffic and weather change'],
+  ['go-sol-3.webp', 'A weekly bus plan built from an imported class calendar'],
 ];
 
 function goSmartMedia(inner) {
