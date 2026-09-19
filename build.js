@@ -114,7 +114,7 @@ function menuHtml(active) {
   }).join('\n      ');
 
   return `<div class="menu" id="site-menu" data-menu hidden>
-  <div class="menu__inner">
+  <div class="menu__inner" tabindex="-1">
     <nav class="menu__links" aria-label="Main">
       ${links}
     </nav>
@@ -714,20 +714,31 @@ function collageSources(inner) {
   const block = inner.slice(start, closeEnd).replace(/<img\b[^>]*>/g, (tag) => {
     const src = /\bsrc="media\/([\w-]+)\.webp"/.exec(tag);
     if (!src) return tag;
-    return tag.replace('<img', '<img decoding="async"' +
+    return tag.replace('<img', '<img fetchpriority="low" decoding="async"' +
       ` srcset="media/${src[1]}-card.jpg 440w, media/${src[1]}.webp 664w"` +
       ' sizes="(max-width: 1440px) 23vw, 330px"');
   });
   return inner.slice(0, start) + block + inner.slice(closeEnd);
 }
 
+/* The wonderMakr card is a 64KB animation in an iframe. The canvas marks it
+   lazy, which on a phone left the card empty for a beat after it scrolled in,
+   so it loads with the page like the other cards' artwork. */
+function eagerCardFrame(inner) {
+  return inner.replace(/<iframe\b[^>]*src="media\/wm-vend-loop\.html"[^>]*>/g,
+    (tag) => tag.replace(/\s*loading="lazy"/, ''));
+}
+
 /* Card artwork below the first card waits until it is scrolled near, so a
    phone spends its first connections on what is actually on screen. The first
-   card stays eager: it is the largest thing in view on load. */
+   card stays eager: it is the largest thing in view on load. Collage tiles are
+   left alone — they are marked low priority instead, for the reason in
+   bleedScreens. */
 function lazyCardImages(inner) {
   let first = true;
   return inner.replace(/<img\b(?![^>]*\bloading=)[^>]*>/g, (tag) => {
     if (!/src="media\/(?:proj-|c-|u-a|play-u4ria)/.test(tag)) return tag;
+    if (/fetchpriority="low"/.test(tag)) return tag;   /* a collage tile: see bleedScreens */
     if (first) { first = false; return tag.replace('<img', '<img decoding="async"'); }
     return tag.replace('<img', '<img loading="lazy" decoding="async"');
   });
@@ -925,8 +936,14 @@ function bleedScreens(open, body) {
        its own 440px JPEGs (media/*-card.jpg) rather than the full-size WebP
        the U4RIA case study shows at 480px — a little over half the bytes. The
        exports carry no real transparency (0.01% of pixels), so JPEG loses
-       nothing. */
+       nothing.
+
+       These tiles are never lazy. They sit in a clipped column that scrolls by
+       transform, so most of them never intersect the viewport and a lazy one
+       simply never loads — which left whole columns blank on a phone. They are
+       marked low priority instead, so they queue behind everything on screen. */
     return container(body
+      .replace(/<img\b/g, '<img fetchpriority="low" decoding="async"')
       .replace(/src="media\/([\w-]+)\.webp"/g, 'src="media/$1-card.jpg"')
       .replace(/(<div style="width:)min\(210px, 14\.5833vw\)(;flex:none)/g, '$1min(210px, max(14.5833vw, 32cqw))$2')
       .replace(/(inset:-18%;display:flex;gap:)min\(18px, 1\.2500vw\)/, '$1min(18px, max(1.25vw, 2.4cqw))')
@@ -1331,7 +1348,7 @@ for (const board of boards) {
   inner = idSections(inner);
   inner = scaleArtBands(inner);
   inner = fluidWidths(inner);
-  if (!board.spy) inner = lazyCardImages(inner);
+  if (!board.spy) inner = eagerCardFrame(lazyCardImages(inner));
   if (page.file === 'trax.html') inner = traxMedia(inner);
   if (page.file === 'wondermakr.html') inner = wondermakrMedia(inner);
   if (page.file === 'go-smart.html') inner = goSmartMedia(inner);

@@ -453,6 +453,11 @@ a:focus-visible {
   transition: opacity .32s ease, visibility 0s;
 }
 
+/* The panel takes focus when it opens so a tap does not leave a ring drawn
+   around the first link; the panel itself never shows one. */
+.menu__inner:focus,
+.menu__inner:focus-visible { outline: none; }
+
 .menu__inner {
   display: flex;
   flex-direction: column;

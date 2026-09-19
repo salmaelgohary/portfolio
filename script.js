@@ -261,9 +261,12 @@
         document.body.setAttribute('data-menu-open', '');
         var bar = document.querySelector('[data-inknav]');
         if (bar && bar.showAlways) bar.showAlways();
-        /* focus the first link so the panel is reachable from the keyboard */
-        var first = menu.querySelector('a');
-        if (first) first.focus({ preventScroll: true });
+        /* Focus the panel itself, not its first link: tabbing from here still
+           lands on Work, but a tap no longer leaves a focus ring drawn around
+           it. The panel takes no ring of its own (see .menu__inner in the
+           stylesheet). */
+        var panel = menu.querySelector('.menu__inner') || menu;
+        panel.focus({ preventScroll: true });
       } else {
         /* hand focus back to the button that owns the panel, but only if it is
            still inside — a tap may never have focused the button at all, and a
