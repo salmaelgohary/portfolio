@@ -39,7 +39,7 @@ const PAGES = {
 
 /* Case-study destination for each project card, in the order the cards appear. */
 const CARD_LINKS = {
-  'index.html': ['amd.html', 'trax.html', 'wondermakr.html'],
+  'index.html': ['trax.html', 'amd.html', 'wondermakr.html'],
   'play.html':  ['sleepwell.html', 'u4ria.html', 'go-smart.html'],
 };
 
@@ -678,29 +678,6 @@ function heroMetaFromMarkdown(inner, file) {
   return inner.slice(0, openEnd) + html + inner.slice(closeStart);
 }
 
-/* The home hero carries the same halftone blob as the Play page's: the slower
-   inkDrift one, softer and less busy than the pair of calmWave layers the home
-   canvas drew. The Play blob is lifted from that page's own markup so the two
-   stay identical; the footer's blob is left alone. */
-function homeHeroBlob(inner) {
-  const play = boards.find((b) => b.label === '11C play');
-  const src = play && play.inner;
-  const from = src ? src.search(/<span style="[^"]*animation:inkDrift[^"]*">/) : -1;
-  if (from < 0) throw new Error('home blob: no drift blob on the play page');
-  const blob = src.slice(from, matchTag(src, from, 'span').closeEnd);
-
-  const marker = '<span style="position:absolute;right:-30px;top:-120px';
-  const first = inner.indexOf(marker);
-  if (first < 0) throw new Error('home blob: no hero blob found');
-  let end = first;
-  for (let n = 0; n < 2; n++) {                        /* the hero's two wave layers */
-    const at = inner.indexOf(marker, end);
-    if (at < 0 || inner.slice(end, at).trim()) throw new Error('home blob: unexpected markup between the wave layers');
-    end = matchTag(inner, at, 'span').closeEnd;
-  }
-  return inner.slice(0, first) + blob + inner.slice(end);
-}
-
 /* The U4RIA hero runs the same collage at up to a 330px column, so it keeps
    the full-size WebP for a retina desktop but offers the Play card's 440px
    JPEGs as well: a phone, whose columns are about 86px, then fetches those and
@@ -797,14 +774,19 @@ function linkChrome(inner, backHref) {
   return inner;
 }
 
-/* Case studies read plain above the fold: the drifting halftone blob comes out
-   of the hero so the writing carries the page. The footer keeps its blob, the
-   same as every other page. */
+/* Strip the canvas's halftone circle blobs from heroes and footers. */
 function stripDecor(inner) {
-  let i;
-  while ((i = inner.search(/<span\b[^>]*data-dotfield="true"/)) >= 0) {
-    const { closeEnd } = matchTag(inner, i, 'span');
-    inner = inner.slice(0, i) + inner.slice(closeEnd);
+  const patterns = [
+    /<span\b[^>]*data-wave="true"/,
+    /<span\b[^>]*data-dotfield="true"/,
+    /<span\b[^>]*animation:inkDrift/,
+  ];
+  for (const re of patterns) {
+    let i;
+    while ((i = inner.search(re)) >= 0) {
+      const { closeEnd } = matchTag(inner, i, 'span');
+      inner = inner.slice(0, i) + inner.slice(closeEnd);
+    }
   }
   return inner;
 }
@@ -1140,10 +1122,10 @@ function tagGridColumns(inner) {
    instead, and carry the wording Salma asked for. The box is absolutely
    positioned, so nothing it does moves the grid. */
 const OUT_CAPTIONS = [
-  'walking and enjoying beautiful sunsets',
-  'cooking and baking (especially tiramisu!)',
-  'binge watching movies with friends',
-  'traveling',
+  'Walking and enjoying beautiful sunsets',
+  'Cooking and baking (especially tiramisu!)',
+  'Binge watching movies with friends',
+  'Traveling',
 ];
 
 function outsidePhotos(inner) {
@@ -1330,7 +1312,7 @@ for (const board of boards) {
   inner = rewriteAssets(inner);
   inner = replaceNav(inner, page.nav);
   inner = replaceSlots(inner);
-  if (board.spy) inner = stripDecor(inner);
+  inner = stripDecor(inner);
   inner = linkCards(inner, CARD_LINKS[page.file]);
   inner = linkChrome(inner, board.spy ? BACK[page.nav] : null);
   if (board.spy) inner = mobileBackLink(inner, BACK[page.nav]);
@@ -1343,7 +1325,7 @@ for (const board of boards) {
   inner = tagGridColumns(inner);
   if (board.spy) inner = heroMetaFromMarkdown(tagHeroMeta(inner), page.file);
   /* the home headline is set larger on a phone than the other pages' (see styles.css) */
-  if (page.file === 'index.html') inner = homeHeroBlob(inner).replace('<h1 ', '<h1 data-home="true" ');
+  if (page.file === 'index.html') inner = inner.replace('<h1 ', '<h1 data-home="true" ');
   inner = outsidePhotos(inner);
   inner = idSections(inner);
   inner = scaleArtBands(inner);
