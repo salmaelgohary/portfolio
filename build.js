@@ -774,6 +774,21 @@ function linkChrome(inner, backHref) {
   return inner;
 }
 
+/* Trax and AMD swap the yellow (#EFE2C4) and green (#D6E9DE) art bands —
+   homepage cards and the matching backgrounds inside each case study.
+   Other pages keep their own use of the same hexes (U4RIA, GO Smart). */
+function swapTraxAmdBands(inner, file) {
+  const yellow = '#EFE2C4';
+  const green = '#D6E9DE';
+  if (file === 'trax.html') return inner.split(green).join(yellow);
+  if (file === 'amd.html') return inner.split(yellow).join(green);
+  if (file === 'index.html') {
+    const tmp = '__TRAXamdBAND__';
+    return inner.split(green).join(tmp).split(yellow).join(green).split(tmp).join(yellow);
+  }
+  return inner;
+}
+
 /* Strip the canvas's halftone circle blobs from heroes and footers. */
 function stripDecor(inner) {
   const patterns = [
@@ -1345,6 +1360,7 @@ for (const board of boards) {
   inner = applyCopyFixes(inner, page.file);
   /* last: tagLayout and the copy fixes match on the canvas's own colour */
   inner = tokeniseSurface(inner);
+  inner = swapTraxAmdBands(inner, page.file);
 
   /* every image slot must be filled or removed; an empty one would ship as a bare box */
   const empty = /data-slot="([^"]+)"/.exec(inner);
